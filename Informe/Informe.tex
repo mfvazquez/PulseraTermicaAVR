@@ -1,0 +1,97 @@
+\documentclass[10pt,spanish,a4paper,openany,notitlepage]{article}
+%-------------------------------------Paquetes-----------------------------------------------------------------------
+\usepackage[spanish,es-tabla]{babel}  	% Traduce los textos a castellano
+\usepackage[utf8]{inputenc}	% Permite escribir directamente áéíóúñ
+\usepackage{t1enc}            	% Agrega caracteres extendidos al font
+\usepackage{amsmath} 		%Permite imprimir mas opcciones matematicas
+\usepackage{graphicx}		%Permite agregar imagenes al informe
+\usepackage{multicol}  		%Permite dividir el texto en varias columnas
+\usepackage{float} 		%Permite utilizar H para colocar las imagenes en un lugar especifico 
+\usepackage{units}
+\usepackage{circuitikz}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{sidecap}
+\usepackage{mathtools}
+\usepackage{multirow} % Paquete para dividir las tablas en subtablas
+\usepackage{booktabs} %estos 2 sirven para achicar la tabla
+\usepackage{tabulary}
+\usepackage{fancyhdr} % encabezado
+\usepackage{textcomp} % para usar ° con el comando \textdegree
+\usepackage{anysize}		%Permite modificar los margenes del documento
+\usepackage{abstract} % paquete para el resumen del articulo
+\usepackage{amssymb}
+%---------------------------------------Configuraciones de pagina----------------------------------------------
+\marginsize{2.5cm}{2.5cm}{1cm}{1cm}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{
+66.09 - \textsc{Laboratorio de Microcomputadoras}\\ 
+1\textsuperscript{er} Cuatrimestre de 2015
+}
+\rhead{\includegraphics[width=3cm]{imagenes/FIUBA_ALTA.jpg}}
+\rfoot{Página \thepage}
+
+%---------------------------------------Definiciones propias---------------------------------------------------------
+\newcommand{\oiint}{\displaystyle\bigcirc\!\!\!\!\!\!\!\!\int\!\!\!\!\!\int} %Integral doble cerrada
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the 
+% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+%--------------------------------------------------------------------------------------------------------------------------------
+
+
+\makeatletter
+\let\ps@plain\ps@fancy 
+\makeatother
+
+% lo siguiente es para borrar el titulo del resumen y que no ocupe espacio:
+ \AtBeginDocument{%
+ \renewcommand{\abstractname}{}%
+ }
+\renewcommand{\absnamepos}{empty} % originally center
+ 
+
+\begin{document}
+\title{\textbf{Proyecto: Diseño y construcción de una pulsera térmica}}
+\author{
+  Martinez, Gaston - 91383\\
+  \texttt{gaston.martinez.90@gmail.com}  
+  \and
+   Vázquez, Matías - 91523\\
+  \texttt{mfvazquez@gmail.com}
+}
+\date{5 de abril de 2015}
+\maketitle
+
+\begin{abstract} %Resumen
+\emph{Se diseñará e implementará una pulsera térmica que regulará la
+temperatura corporal. Se utilizará un módulo termoeléctrico para enviar
+variaciones de calor o frío a la muñeca del usuario para modificar
+la percepción térmica del cuerpo.}
+\end{abstract}
+
+\section{Introducción}
+
+La piel humana necesita una diferencia de temperatura 
+mayor a $0.1\, \unit{^oC}$ en una determinada zona para que
+todo el cuerpo sienta esta diferencia de temperatura. 
+
+\section{Especificaciones}
+
+El dispositivo utilizará una placa de peltier para enviar pulsos de calor
+o frío. De forma que se logre una diferencia de temperatura de $0,4\, \unit{^oC/seg.}$
+durante $5\, \unit{segundos}$ y durante los siguientes $10\, \unit{segundos}$ entrará
+en estado de espera, para luego volver a iniciar el ciclo. 
+
+\end{document}
