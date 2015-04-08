@@ -81,17 +81,17 @@ variaciones de calor o frío a la muñeca del usuario para modificar
 la percepción térmica del cuerpo.}
 \end{abstract}
 
-\section{Introducción}
-
-La piel humana necesita una diferencia de temperatura 
-mayor a $0.1\, \unit{^oC}$ en una determinada zona para que
-todo el cuerpo sienta esta diferencia de temperatura. 
-
 \section{Especificaciones}
 
 El dispositivo utilizará una placa de peltier para enviar pulsos de calor
 o frío. De forma que se logre una diferencia de temperatura de $0,4\, \unit{^oC/seg.}$
-durante $5\, \unit{segundos}$ y durante los siguientes $10\, \unit{segundos}$ entrará
+durante 5 segundos y durante los siguientes 10 segundos entrará
 en estado de espera, para luego volver a iniciar el ciclo. 
+
+Deberá contar con un sensor de temperatura para medir la temperatura ambiente
+y analizar si deberá enviar o recibir calor.
+
+Finalmente deberá controlar que se cumpla el ciclo utilizando una termocupla
+para medir la temperatura corporal cercana a la placa de peltier.
 
 \end{document}
