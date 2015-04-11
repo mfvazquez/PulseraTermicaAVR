@@ -1,5 +1,6 @@
 #include <avr/io.h>
 
+.section .text
 .global main
 
 main:
@@ -7,26 +8,28 @@ main:
 	sbi		_SFR_IO_ADDR(PORTA),0
 	clr 	r20
 	ldi		r21,	1
-	rjmp	dem
-loop:	
-	cpi		r20,	0
-	breq	prende
-apaga:
-	sbi		_SFR_IO_ADDR(PORTA),0
-	rjmp	dem
-prende:
-	cbi		_SFR_IO_ADDR(PORTA),0
-	rjmp	dem
 
-dem:
-	ldi 	r22,	200
-dem_loop:
-	
+LOOP:	
+	cpi		r20,	0
+	breq	PRENDE
+
+APAGA:
+	sbi		_SFR_IO_ADDR(PORTA),0
+	jmp		DEMORA
+
+PRENDE:
+	cbi		_SFR_IO_ADDR(PORTA),0
+	jmp		DEMORA
+
+DEMORA:
+	ldi 	r22,	20	
+	nop
+LOOP_DEMORA:	
 	dec		r22
 	cpi		r22,	0
-	brne	dem_loop
+	brne	LOOP_DEMORA
 	eor		r20,	r21
-	rjmp	loop
+	jmp		LOOP
 	
 
 .end
