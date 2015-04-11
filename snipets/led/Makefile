@@ -1,11 +1,19 @@
 EXE = led
+MICRO = atmega16
 
-all: $(EXE)
+all: elf hex
 
 clean:
-	rm led.hex led.o
+	rm led.hex led.o led.elf
 
-$(EXE): $(EXE).S clean
-	avr-gcc -g -mmcu=atmega32 $(EXE).S -o $(EXE).o -Os
-	avr-objcopy -O ihex $(EXE).o $(EXE).hex
+elf:
+	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -Os
+
+send:	hex
 	sudo avrdude -c usbtiny -p m32 -U flash:w:$(EXE).hex:i
+
+hex: $(EXE).o
+	avr-objcopy -O ihex $(EXE).o $(EXE).hex
+
+$(EXE).o: $(EXE).S
+	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).o -Os

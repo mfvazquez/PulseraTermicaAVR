@@ -1,0 +1,10 @@
+#Start server
+
+simulavr -d atmega8 -g -f <>.elf
+
+#Run gdb
+
+avr-gdb
+(gdb) file simple.elf
+(gdb) target remote localhost:1212
+(gdb) load
