@@ -2,8 +2,10 @@ EXE = led
 
 all: $(EXE)
 
-$(EXE): $(EXE).S
-	sudo avrdude -c usbtiny -p m8 -U lfuse:r:-:i -U hfuse:r:-:i
-	avr-gcc -g -mmcu=atmega8 $(EXE).S -o $(EXE).o -Os
+clean:
+	rm led.hex led.o
+
+$(EXE): $(EXE).S clean
+	avr-gcc -g -mmcu=atmega32 $(EXE).S -o $(EXE).o -Os
 	avr-objcopy -O ihex $(EXE).o $(EXE).hex
-	sudo avrdude -c usbtiny -p m8 -U flash:w:$(EXE).hex:i
+	sudo avrdude -c usbtiny -p m32 -U flash:w:$(EXE).hex:i
