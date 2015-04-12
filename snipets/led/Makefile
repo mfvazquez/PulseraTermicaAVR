@@ -1,5 +1,5 @@
 EXE = led
-MICRO = atmega16
+MICRO = atmega8
 
 all: elf hex
 
@@ -10,7 +10,7 @@ elf:
 	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -Os
 
 send:	hex
-	sudo avrdude -c usbtiny -p m32 -U flash:w:$(EXE).hex:i
+	sudo avrdude -c usbtiny -p m8 -U flash:w:$(EXE).hex:i
 
 hex: $(EXE).o
 	avr-objcopy -O ihex $(EXE).o $(EXE).hex
