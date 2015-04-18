@@ -11,30 +11,27 @@
 ;Sugerencia: Se supone que la rutina lee los valores E y S (en el tiempo k) calcula la
 ;nueva salida S(k+1) y pisa el viejo valor en RAM de S(k).
 
+#define low(x)   ((x) & 0xFF)
+#define high(x)   (((x)>>8) & 0xFF)
 
 #include <avr/io.h>
 
-.section .text
-.global main
 
+.global main
+.section .data
 ;_SFR_IO_ADDR(DDRB)
 ;_SFR_IO_ADDR(PORTB)
 
-.dseg
 ENTRADA:	.byte	1
 SALIDA:		.byte	1
 
-.cseg
-
-.def 		TEMP = r16
-
-
+.section .text
 main:
-	;Stack init	
-	ldi		TEMP,	low(RAMEND)
-	out		spl,	TEMP
-	ldi		TEMP,	high(RAMEND)
-	out		sph,	TEMP
+	;Stack init
+	ldi		r16,	low(RAMEND)
+	out		_SFR_IO_ADDR(SPL),	r16
+	ldi		r16,	high(RAMEND)
+	out		_SFR_IO_ADDR(SPH),	R16
 
 	rjmp	main
 
