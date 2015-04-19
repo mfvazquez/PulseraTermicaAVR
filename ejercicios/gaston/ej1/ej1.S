@@ -36,6 +36,9 @@ main:
 	sbi		_SFR_IO_ADDR(DDRB),	0x0	;set port as input
 	sbi		_SFR_IO_ADDR(DDRC),	0x7 ;set port as output
 
+	sbi		_SFR_IO_ADDR(PORTB),	2 ;mock port b input
+
+	;clear SALIDA
 	ldi		r16,	0x0
 	sts		SALIDA,	r16
 
@@ -50,9 +53,22 @@ loop:
 
 
 FILTRO:
-	ret 
 	;(1/4)*E(k)
-	;ld
+	lds		r17,	ENTRADA
+	lsr		r17
+	lsr		r17
+
 	;(3/4)*S(k)
+	lds		r18,	SALIDA
+	lsr		r18
+	mov		r19,	r18
+	lsr		r18
+	add 	r18,	r19
+
+	;(1/4)*E(k) + (3/4)*S(k)
+	add 	r17,	r18
+	sts		SALIDA,	r17
+	
+	ret 
 
 .end
