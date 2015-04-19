@@ -29,14 +29,28 @@ SALIDA:		.byte	1
 main:
 	;Stack init
 	ldi		r16,	low(RAMEND)
-	out		_SFR_IO_ADDR(SPL),	r16
+	out		_SFR_IO_ADDR(SPL),		r16
 	ldi		r16,	high(RAMEND)
-	out		_SFR_IO_ADDR(SPH),	R16
+	out		_SFR_IO_ADDR(SPH),		r16
 
-	rjmp	main
+	sbi		_SFR_IO_ADDR(DDRB),	0x0	;set port as input
+	sbi		_SFR_IO_ADDR(DDRC),	0x7 ;set port as output
+
+	ldi		r16,	0x0
+	sts		SALIDA,	r16
+
+loop:
+	sts		ENTRADA,	_SFR_IO_ADDR(PORTB)
+
+	rcall 	FILTRO
+
+	lds		_SFR_IO_ADDR(PORTC),	SALIDA
+
+	rjmp	loop
 
 
 FILTRO:
+	ret 
 	;(1/4)*E(k)
 	;ld
 	;(3/4)*S(k)
