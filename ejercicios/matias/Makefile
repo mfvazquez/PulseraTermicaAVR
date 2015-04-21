@@ -1,10 +1,10 @@
-EXE = led
+EXE = ej1
 MICRO = atmega8
 
 all: elf hex
 
 clean:
-	rm led.hex led.o led.elf
+	rm *.hex *.o *.elf
 
 elf:
 	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -Os
