@@ -1,4 +1,4 @@
-EXE = ej1
+EXE = parcial
 MICRO = atmega8
 
 all: elf hex
