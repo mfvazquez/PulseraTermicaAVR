@@ -5,7 +5,6 @@
 \usepackage{t1enc}            	% Agrega caracteres extendidos al font
 \usepackage{amsmath} 		%Permite imprimir mas opcciones matematicas
 \usepackage{graphicx}		%Permite agregar imagenes al informe
-\usepackage{multicol}  		%Permite dividir el texto en varias columnas
 \usepackage{float} 		%Permite utilizar H para colocar las imagenes en un lugar especifico 
 \usepackage{units}
 \usepackage{circuitikz}
@@ -21,6 +20,26 @@
 \usepackage{anysize}		%Permite modificar los margenes del documento
 \usepackage{abstract} % paquete para el resumen del articulo
 \usepackage{amssymb}
+
+
+
+
+
+% todo lo que sigue es para poner links que se les pueda hacer click
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{hyperref}
+\hypersetup{colorlinks,urlcolor=blue}
+
+\makeatletter
+\DeclareUrlCommand\ULurl@@{%
+  \def\UrlFont{\ttfamily\color{blue}}%
+  \def\UrlLeft{\uline\bgroup}%
+  \def\UrlRight{\egroup}}
+\def\ULurl@#1{\hyper@linkurl{\ULurl@@{#1}}{#1}}
+\DeclareRobustCommand*\ULurl{\hyper@normalise\ULurl@}
+\makeatother
+
 %---------------------------------------Configuraciones de pagina----------------------------------------------
 \marginsize{2.5cm}{2.5cm}{1cm}{1cm}
 
@@ -63,7 +82,7 @@
  
 
 \begin{document}
-\title{\textbf{Proyecto: Diseño y construcción de una pulsera térmica}}
+\title{\textbf{Anteproyecto: Dispositivo autoregulador de la percepción térmica corporal}}
 \author{
   Martinez, Gaston - 91383\\
   \texttt{gaston.martinez.90@gmail.com}  
@@ -71,7 +90,7 @@
    Vázquez, Matías - 91523\\
   \texttt{mfvazquez@gmail.com}
 }
-\date{5 de abril de 2015}
+\date{22 de abril de 2015}
 \maketitle
 
 \begin{abstract} %Resumen
@@ -80,6 +99,14 @@ temperatura corporal. Se utilizará un módulo termoeléctrico para enviar
 variaciones de calor o frío a la muñeca del usuario para modificar
 la percepción térmica del cuerpo.}
 \end{abstract}
+
+\section{Introducción}
+
+Su función es generar pulsos de frío o calor, de manera de generar una sensación de 
+confort para una persona en condiciones donde la temperatura es muy alta 
+o muy baja respectivamente.
+Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso de intel 
+\emph{Make It Wearable} \cite{Make It Wearable}.
 
 \section{Especificaciones}
 
@@ -93,5 +120,49 @@ y analizar si deberá enviar o recibir calor.
 
 Finalmente deberá controlar que se cumpla el ciclo utilizando una termocupla
 para medir la temperatura corporal cercana a la placa de peltier.
+
+\subsection{Componentes}
+
+Deberá contar con los siguientes componentes.
+
+\begin{itemize}
+\item{Placa de peltier:} Generará los pulsos térmicos en la muñeca del usuario.
+\item{Termómetro:} Medirá la temperatura ambiente y en base a ella decidirá 
+si se debe aumentar o reducir la temperatura en la termocupla.
+\item{Termocupla:} Contará con una doble finalidad. Por un lado permitirá 
+medir el cambio de temperatura de la placa; y por el otro permitirá medir 
+la temperatura actual del cuerpo al momento de colocarse la pulsera.
+\item{Salida de puerto serie:} Servirá para poder monitorear en una 
+computadora la temperatura de la placa.
+\item{Batería:} Se encargará de suministrar la corriente necesaria a la 
+placa de peltier.
+\item{Pulsador:} Para poder invertir el estado de trabajo, de frío a calor 
+y viceversa.
+\item{Disipador:} Se encargará de disipar el calor del lado opuesto al de 
+la muñeca de la placa de peltier.
+\end{itemize}
+
+\subsection{Diagrama de Flujo}
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.65]{./imagenes/diagrama_de_flujo.png}
+\caption{Diagrama de flujo del proceso}
+ \label{fig:diag_flujo}
+\end{center}
+\end{figure}
+
+\begin{thebibliography}{9}
+
+\bibitem{embrlabs}
+  \ULurl{http://www.embrlabs.com/}
+
+\bibitem{Make It Wearable}
+  \ULurl{https://youtu.be/sDZHITVfYrI}
+  
+\bibitem{video MIT}
+  \ULurl{https://youtu.be/kvUMCip-r4A}
+
+\end{thebibliography}
 
 \end{document}
