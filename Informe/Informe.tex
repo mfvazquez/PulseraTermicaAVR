@@ -110,7 +110,7 @@ Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso
 
 \section{Especificaciones}
 
-El dispositivo utilizará una placa de peltier para enviar pulsos de calor
+El dispositivo utilizará una celda Peltier para enviar pulsos de calor
 o frío. De forma que se logre una diferencia de temperatura de $0,4\, \unit{^oC/seg.}$
 durante 5 segundos y durante los siguientes 10 segundos entrará
 en estado de espera, para luego volver a iniciar el ciclo. 
@@ -134,8 +134,8 @@ medir el cambio de temperatura de la placa; y por el otro permitirá medir
 la temperatura actual del cuerpo al momento de colocarse la pulsera.
 \item{Salida de puerto serie:} Servirá para poder monitorear en una 
 computadora la temperatura de la placa.
-\item{Batería:} Se encargará de suministrar la corriente necesaria a la 
-placa de peltier.
+\item{Fuente:} Se encargará de suministrar la corriente necesaria a la 
+placa de peltier y proporcionará alimentación a todos los dispositivos utilizados.
 \item{Pulsador:} Para poder invertir el estado de trabajo, de frío a calor 
 y viceversa.
 \item{Disipador:} Se encargará de disipar el calor del lado opuesto al de 
@@ -153,6 +153,7 @@ la muñeca de la placa de peltier.
 \end{figure}
 
 \subsection{Diagrama de Bloques}
+
 
 \ifx\du\undefined
   \newlength{\du}
@@ -363,6 +364,49 @@ la muñeca de la placa de peltier.
 }
 \end{tikzpicture}
 
+\section{Diseño}
+
+\subsection{Circuito regulador de corriente}
+
+Para la construcción del circuito regulador de corriente se utilizará
+un regulador de tensión {\bf LM317}. Partiendo del circuito mostrado
+en la figura número \ref{circuito:reg_corriente}. Se obtendrá el
+valor mínimo de $R_1$ para obtener la corriente máxima de salida $I_{out}$
+mediante la ecuación número \ref{eq:iout}.
+
+\begin{figure}[H]
+\centering
+\begin{circuitikz}[american]\shorthandoff{>}
+\draw
+(0,0) to [short] (2.5,0)
+to [short] (2.5,1)
+to [short] (0,1)
+to [short] (0,0)
+(0,0.10) to [open,l=\bf{LM317}] (2.5,0.10)
+ 
+(2.5,0.5) to [R, l=$R_1$] (5, 0.5)
+to [short, -o , i=$I_{out}$] (6.5, 0.5)
+
+(1.25, 0) to [short] (1.25, -1)
+to [short] (5, -1)
+to [short, -*] (5, 0.5)
+
+(-1, 0.5) to [short, o-, l= $V_{in}$] (0, 0.5)
+
+;\end{circuitikz}
+\caption{Circuito regulador de corriente}
+\label{circuito:reg_corriente}
+\end{figure}
+
+\begin{equation}
+I_{out} = \frac{1.25\, \unit{V}}{R_1}
+\label{eq:iout}
+\end{equation}
+ 
+La corriente máxima de salida será necesaria para alcanzar una diferencia 
+de temperatura de $2\, \unit{^oC}$ entre una de las caras de la celda Peltier 
+y la temperatura ambiente. Que se deberá obtener experimentalmente con
+la celda Peltier utilizada.
 
 \begin{thebibliography}{9}
 
