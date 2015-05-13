@@ -140,6 +140,10 @@ placa de peltier y proporcionará alimentación a todos los dispositivos utiliza
 y viceversa.
 \item{Disipador:} Se encargará de disipar el calor del lado opuesto al de 
 la muñeca de la placa de peltier.
+\item{Controlador:} Se utilizara un microcontrolador AVR. Recibirá la temperatura ambiente del termómetro
+para decidir que régimen de trabajo establecer, y con la temperatura suministrada por la termocupla
+decidirá cuanta corriente suministrarle a la celda Peltier mediante un circuito regulador de corriente.
+También estará conectado a un pulsador para invertir el régimen de trabajo.
 \end{itemize}
 
 \subsection{Diagrama de Flujo}
