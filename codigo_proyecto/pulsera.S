@@ -16,6 +16,9 @@ TRANSMIT_LOOP:
 
 USART_Init:
 
+	clr		r17
+	ldi		r16,	250
+
 	out 	_SFR_IO_ADDR(UBRRH), 	r17
 	out 	_SFR_IO_ADDR(UBRRL), 	r16
 
