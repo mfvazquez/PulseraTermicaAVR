@@ -5,17 +5,24 @@
 #define high(x)   (((x)>>8) & 0xFF)
 
 
-;EJERCICIO 1
-
 .global main
 .section .data
 
-ENTRADA:	.byte	1
-SALIDA:		.byte	1
+.comm	ENTRADA, 1	
+.comm	SALIDA, 1
+
+.comm	TABLA_RAM, 500
+
+.ORG	500
+.size	TABLA_ROM, 500	
 
 .section .text
 
+.ORG	0x0
+
 main:
+	rcall	NUMEROS	
+
 	ldi	r16, high(RAMEND)	;inicializa el stack pointer
 	out	_SFR_IO_ADDR(SPH), r16		
 	ldi	r16, low(RAMEND)
@@ -35,8 +42,6 @@ loop:
 	lds	_SFR_IO_ADDR(PORTC), SALIDA		;guarda salida y lo envia al puerto c
 	rjmp	loop
 
-;EJERCICIO 2
-
 FILTRO:
 	lds	r17, SALIDA ; (3/4) * SALIDA
 	lsr 	r17
@@ -52,6 +57,11 @@ FILTRO:
 	add	r17, r18 ; (1/4) * ENTRADA + (3/4) * SALIDA
 	
 	sts	SALIDA, r17
+	ret
+
+NUMEROS:
+
+	
 	ret
 
 .end
