@@ -16,19 +16,19 @@ TRANSMIT_LOOP:
 
 USART_Init:
 
-	out 	UBRRH, 	r17
-	out 	UBRRL, 	r16
+	out 	_SFR_IO_ADDR(UBRRH), 	r17
+	out 	_SFR_IO_ADDR(UBRRL), 	r16
 
 	ldi 	r16, 	(1<<RXEN)|(1<<TXEN)
-	out 	UCSRB,	r16
+	out 	_SFR_IO_ADDR(UCSRB),	r16
 
 	ldi 	r16, 	(1<<URSEL)|(1<<USBS)|(3<<UCSZ0)
-	out 	UCSRC,	r16
+	out 	_SFR_IO_ADDR(UCSRC),	r16
 	
 	ret
 
 USART_Transmit:
-	sbis 	UCSRA,	UDRE
+	sbis 	_SFR_IO_ADDR(UCSRA),	UDRE
 	rjmp 	USART_Transmit
 	
 	out 	UDR,	r16
