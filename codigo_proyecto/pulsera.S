@@ -3,12 +3,12 @@
 .section .text
 .global main
 
+
 main:
 
 	rcall	USART_Init
-
 	clr		r16
-
+	
 	sbi		_SFR_IO_ADDR(DDRB),0
 	sbi		_SFR_IO_ADDR(PORTB),0 ;Prendo el led solo para verificar que este vivo
 
@@ -30,6 +30,17 @@ PWM:
 
 H:
 	rjmp H
+
+
+PWM_2:
+	sbi  	_SFR_IO_ADDR(DDRD),		7	;Pin B1 (OC1A)	
+	ldi		r16,	100					;Cambia cada 100 cuentas
+	out		_SFR_IO_ADDR(OCR1A),	r16	;Seteo el valor
+	ldi		r16,	0x19				;0x19 	(00011001)
+	out 	_SFR_IO_ADDR(TCCR1A),	r16	;Seteo el modo en toggle, ctc, no prescalar
+SEND_LOOP:
+	rjmp	SEND_LOOP
+
 
 TRANSMIT_LOOP:
 	cbi		_SFR_IO_ADDR(PORTB),0
