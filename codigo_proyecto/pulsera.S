@@ -9,6 +9,28 @@ main:
 
 	clr		r16
 
+	sbi		_SFR_IO_ADDR(DDRB),0
+	sbi		_SFR_IO_ADDR(PORTB),0 ;Prendo el led solo para verificar que este vivo
+
+	rjmp TRANSMIT_LOOP
+
+PWM:
+
+	SBI _SFR_IO_ADDR(DDRB),3
+	sbi _SFR_IO_ADDR(DDRD),6
+	sbi _SFR_IO_ADDR(PORTD),6
+	;rjmp H	
+	
+	ldi r16 , 180
+	out _SFR_IO_ADDR(OCR2),r16
+	;ldi r16,0x76
+	;out _SFR_IO_ADDR(TCNT2) ,r16
+	ldi r16,0x76
+	out _SFR_IO_ADDR(TCCR2) ,r16
+
+H:
+	rjmp H
+
 TRANSMIT_LOOP:
 	rcall	USART_Transmit
 	inc 	r16
@@ -36,6 +58,4 @@ USART_Transmit:
 	
 	out 	UDR,	r16
 	ret
-
-
 .end
