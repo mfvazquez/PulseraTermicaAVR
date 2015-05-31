@@ -19,8 +19,8 @@ PWM:
 	SBI _SFR_IO_ADDR(DDRB),3
 	sbi _SFR_IO_ADDR(DDRD),6
 	sbi _SFR_IO_ADDR(PORTD),6
-	;rjmp H	
-	
+	;rjmp H
+
 	ldi r16 , 180
 	out _SFR_IO_ADDR(OCR2),r16
 	;ldi r16,0x76
@@ -39,24 +39,20 @@ TRANSMIT_LOOP:
 
 USART_Init:
 
-	ldi		r17,	0x25
-	ldi		r16,	0x80
-
-	out 	_SFR_IO_ADDR(UBRRH), 	r17
-	out 	_SFR_IO_ADDR(UBRRL), 	r16
-
-	ldi 	r16, 	(1<<RXEN)|(1<<TXEN)
+	ldi 	r16, 	(1<<TXEN) ;enable
 	out 	_SFR_IO_ADDR(UCSRB),	r16
 
-	ldi 	r16, 	(1<<URSEL)|(1<<USBS)|(3<<UCSZ0)
+	ldi 	r16, 	(1<<UCSZ1)|(1<<UCSZ0)|(3<<URSEL)
 	out 	_SFR_IO_ADDR(UCSRC),	r16
-	
+
+	ldi	r16,	0x33 ;Baud 9600
+	out 	_SFR_IO_ADDR(UBRRL),	r16
+
 	ret
 
 USART_Transmit:
 	sbis 	_SFR_IO_ADDR(UCSRA),	UDRE
 	rjmp 	USART_Transmit
-	sbi		_SFR_IO_ADDR(PORTB),0
-	out 	UDR,	r16
+	out 	_SFR_IO_ADDR(UDR),	r16
 	ret
 .end
