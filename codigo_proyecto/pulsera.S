@@ -32,14 +32,15 @@ H:
 	rjmp H
 
 TRANSMIT_LOOP:
+	cbi		_SFR_IO_ADDR(PORTB),0
 	rcall	USART_Transmit
 	inc 	r16
 	rjmp	TRANSMIT_LOOP
 
 USART_Init:
 
-	clr		r17
-	ldi		r16,	250
+	ldi		r17,	0x25
+	ldi		r16,	0x80
 
 	out 	_SFR_IO_ADDR(UBRRH), 	r17
 	out 	_SFR_IO_ADDR(UBRRL), 	r16
@@ -55,7 +56,7 @@ USART_Init:
 USART_Transmit:
 	sbis 	_SFR_IO_ADDR(UCSRA),	UDRE
 	rjmp 	USART_Transmit
-	
+	sbi		_SFR_IO_ADDR(PORTB),0
 	out 	UDR,	r16
 	ret
 .end
