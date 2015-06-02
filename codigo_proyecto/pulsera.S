@@ -12,6 +12,7 @@ main:
 	sbi		_SFR_IO_ADDR(DDRB),0
 	sbi		_SFR_IO_ADDR(PORTB),0 ;Prendo el led solo para verificar que este vivo
 
+	clr		r16
 	rjmp TRANSMIT_LOOP
 
 PWM:
@@ -32,9 +33,8 @@ H:
 	rjmp H
 
 TRANSMIT_LOOP:
-	cbi		_SFR_IO_ADDR(PORTB),0
 	rcall	USART_Transmit
-	inc 	r16
+	inc 	r16	
 	rjmp	TRANSMIT_LOOP
 
 USART_Init:
@@ -42,7 +42,7 @@ USART_Init:
 	ldi 	r16, 	(1<<TXEN) ;enable
 	out 	_SFR_IO_ADDR(UCSRB),	r16
 
-	ldi 	r16, 	(1<<UCSZ1)|(1<<UCSZ0)|(3<<URSEL)
+	ldi 	r16, 	0x86 ;(1<<UCSZ1)|(1<<UCSZ0)|(3<<URSEL)
 	out 	_SFR_IO_ADDR(UCSRC),	r16
 
 	ldi	r16,	0x33 ;Baud 9600
@@ -53,6 +53,9 @@ USART_Init:
 USART_Transmit:
 	sbis 	_SFR_IO_ADDR(UCSRA),	UDRE
 	rjmp 	USART_Transmit
+	;cbi		_SFR_IO_ADDR(PORTB),0 ;Prendo el led solo para verificar que este vivo
+ 
 	out 	_SFR_IO_ADDR(UDR),	r16
 	ret
+
 .end
