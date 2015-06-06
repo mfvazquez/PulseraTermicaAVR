@@ -6,19 +6,15 @@
 main:
 
 	rcall	USART_Init
-
 	clr		r16
-
 	sbi _SFR_IO_ADDR(DDRB),3 ;(OC2) para salida
-
-
 	clr		r16
-	rjmp TRANSMIT_LOOP
+	rjmp READ_ADC
 
 ;------------------------------------------------------------------------------------
 
 PWM:
-	ldi r16 , 180 ;(180 cuentas)
+	ldi r16 , 10 ;(180 cuentas)
 	out _SFR_IO_ADDR(OCR2),r16
 	;ldi r16,0x7
 	;out _SFR_IO_ADDR(TCNT2) ,r16
@@ -32,7 +28,8 @@ H:
 
 TRANSMIT_LOOP:
 	rcall	USART_Transmit
-	ldi 	r16,'C'	
+	;ldi 	r16,0x55	
+	inc 	r16
 	rjmp	TRANSMIT_LOOP
 
 ;------------------------------------------------------------------------------------
@@ -41,20 +38,20 @@ USART_Init:
 	ldi 	r16, 	(1<<TXEN) ;enable
 	out 	_SFR_IO_ADDR(UCSRB),	r16
 
-	ldi 	r16, 	(1<<URSEL)|(1<<USBS)|(3<<UCSZ0)
+	ldi 	r16, 	(1<<URSEL)|(3<<UCSZ0)
 	out 	_SFR_IO_ADDR(UCSRC),	r16
 
-	ldi	r16,	0x33 ;Baud 9600
+	ldi	r16,	0xC ;Baud 4800
 	out 	_SFR_IO_ADDR(UBRRL),	r16
 
 	ret
 
 USART_Transmit:
-	sbis _SFR_IO_ADDR(UCSRA),UDRE
-	rjmp USART_Transmit
-	; Put data (r16) into buffer, sends the data
-	out UDR,r16
-	ret	
+	sbis 	_SFR_IO_ADDR(UCSRA), UDRE
+	rjmp 	USART_Transmit
+
+	out 	_SFR_IO_ADDR(UDR),	r16
+	ret
 
 ;-----------------------------------------------------------------------------------
 
