@@ -18,6 +18,11 @@ LOOP:
 
 REDUCIR_LOOP:
 
+	ldi 	r16,		'I'					;Envio la iteracion
+	rcall 	USART_Transmit
+	mov 	r16,		r22 
+	rcall 	USART_Transmit
+
 	rcall 	READ_ADC 						;leer temperatura ambiente
 	rcall	TRANSLATE_TEMP					;obtengo la temperatura
 	mov		r17,		r16
@@ -47,6 +52,15 @@ REDUCIR_LOOP:
 CHANGE_MODE:								;Atiende la interrupcion de cambio de modo
 	inc 	r22								;Invierte el ultimo bit
 	rjmp	LOOP
+
+
+
+;SEND SNIPPET
+;ldi r16,'A' ;tipo de dato a mandar
+;rcall USART_Transmit
+;mov r16,r22 ;No se, imprimo el modo
+;rcall USART_Transmit
+
 
 
 ;-------------------------------------Funciones---------------------------------------
