@@ -40,7 +40,7 @@ REDUCIR_LOOP:
 	;esperar 2 segundos
 
 	inc 	r20		 						;Cumpli una vuelta
-	sbis 	r20,		6					;No saltar si ya ejecuto 5 vueltas
+	cpse 	r20,		6					;No saltar si ya ejecuto 5 vueltas
 
 	rjmp	REDUCIR_LOOP					
 
