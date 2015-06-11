@@ -28,8 +28,8 @@ PWM:
 	ldi r16,0x71 ;(01110001) Phase correct, no pre escalar, clear on match
 	out _SFR_IO_ADDR(TCCR2) ,r16
 	ldi r16 , 0xFF
-	ldi		r17, 20
-	ldi		r25, 	5
+	ldi		r17, 10
+	ldi		r25, 	6
 
 DEMORA:
 	ldi r22, 0xFF
@@ -102,7 +102,7 @@ USART_Transmit:
 ;-----------------------------------------------------------------------------------
 
 READ_ADC:
-	ldi r16, 0b11000000  ; write zero
+	ldi r16, 0b11000001  ; write zero
 	out _SFR_IO_ADDR(ADMUX), r16  ; to ADMUX (select channel 0)
 	ldi r16, 0b11101101  ; from left to right: ADC Enable, Start Conversion, Free-Running Mode, write
 	out _SFR_IO_ADDR(ADCSR), r16  ; zero to ADC Int flag, enable int, prescaler: 101 for XTAL/32

@@ -4,7 +4,7 @@ MICRO = atmega8
 all: elf hex
 
 clean:
-	rm -f $(EXE).hex $(EXE).o $(EXE).elf
+	rm -f *.hex *.o *.elf
 
 elf:
 	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -Os

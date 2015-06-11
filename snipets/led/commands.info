@@ -1,6 +1,6 @@
 #Start server
 
-simulavr -d atmega8 -g -f <>.elf
+simulavr -d atmega8 -g <>.elf
 
 #Run gdb
 
