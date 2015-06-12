@@ -8,7 +8,7 @@ VOLT = 2.56 / 255
 def traducir_voltaje(leido):
 	return ord(leido) * VOLT
 
-DATA_TYPE = {"A":("Temperatura Ambiente",TAMANIO_TEMPERATURA,traducir_voltaje),"P":("Temperatura Peltier",TAMANIO_TEMPERATURA,traducir_voltaje),
+DATA_TYPE = {"A":("Temperatura Ambiente",TAMANIO_TEMPERATURA,traducir_voltaje),"P":("Tension Peltier",TAMANIO_TEMPERATURA,traducir_voltaje),
 		"I":("Numero Ciclo",1,ord)}
 
 def main():
@@ -16,7 +16,7 @@ def main():
 	while (True): #Leo el tipo de dato a leer
 		read_byte = serial_port.read(1)	
 		if not DATA_TYPE.has_key(read_byte):
-			print "Leido: ",ord(read_byte)
+			print "Leido: ",ord(read_byte), "no reconocido."
 			continue
 
 		data_type,data_len,f = DATA_TYPE[read_byte]

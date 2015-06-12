@@ -41,12 +41,6 @@ REDUCIR_LOOP:
 	rcall	TRANSLATE_TEMP					;obtengo la temperatura
 	mov		r17,		r16
 
-	ldi 	r16,		'A' 				;tipo de dato a mandar
-	rcall 	USART_Transmit
-	mov 	r16,		r17
-	rcall 	USART_Transmit
-
-
 	rcall 	READ_ADC 						;leer temperatura peltier
 	rcall	TRANSLATE_TEMP					;obtengo la temperatura
 	mov		r18,		r16
@@ -56,7 +50,36 @@ REDUCIR_LOOP:
 	;calcular duty, devuelve el valor en r16, recibe vuelta en r16, ambiente en r17 y peltier en r18
 
 	rcall	SET_PWM
+
+	;rcall  	DEMORA
+
+	ldi 	r16,		1 					; canal 1 tension peltier
+	rcall 	READ_ADC 						; leer tension del peltier
+	mov		r17,		r16					; guardo la tension
+	ldi 	r16,		'P' 				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	r16,		r17
+	rcall 	USART_Transmit
+
 	rcall 	DEMORA
+
+	ldi 	r16,		1 					; canal 1 tension peltier
+	rcall 	READ_ADC 						; leer tension del peltier
+	mov		r17,		r16					; guardo la tension
+	ldi 	r16,		'P' 				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	r16,		r17
+	rcall 	USART_Transmit
+
+	rcall 	DEMORA
+
+	ldi 	r16,		1 					; canal 1 tension peltier
+	rcall 	READ_ADC 						; leer tension del peltier
+	mov		r17,		r16					; guardo la tension
+	ldi 	r16,		'P' 				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	r16,		r17
+	rcall 	USART_Transmit
 
 	inc 	r20		 						;Cumpli una vuelta
 	ldi 	r16,		6
@@ -70,7 +93,8 @@ REDUCIR_LOOP:
 	;sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	;cbi _SFR_IO_ADDR(PORTB), 3
 
-	rcall	STANDBY
+	;rcall	STANDBY
+	rjmp LOOP
 	
 ;SEND SNIPPET
 ;ldi r16,'A' ;tipo de dato a mandar
@@ -170,10 +194,11 @@ USART_Init:
 ;-------------------------------------------------------------------------------------
 ;Read adc 
 ;Lee un dato del conversor adc y lo devuelve
+;r16: canal del cual leer
 ;r16: valor leido devuelto
 
 READ_ADC:
-	ldi 	r16,				0b11000001  ; write zero
+	ldi 	r16,				0b11000000  ; Base
 	out _SFR_IO_ADDR(ADMUX), 	r16 		; to ADMUX (select channel 0)
 	ldi 	r16,				0b11101101	; from left to right: ADC Enable, Start Conversion, Free-Running Mode, write
 	out _SFR_IO_ADDR(ADCSR), 	r16 		; zero to ADC Int flag, enable int, prescaler: 101 for XTAL/32
