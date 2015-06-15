@@ -8,18 +8,25 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 TAMANIO_TEMPERATURA = 1
 
-VOLT = 2.56 / 255
-
+A = -33.728
+B = 65.913
 
 def traducir_voltaje(leido):
-    return ord(leido) * VOLT
+    return traducir_voltaje(leido) * A + B
+
+
+def devolver_tiempo(leido):
+    print time()
+    return ord(leido)
 
 
 DATA_TYPE = {"A": ("Temperatura Ambiente", TAMANIO_TEMPERATURA, traducir_voltaje),
              "P": ("Tension Peltier", TAMANIO_TEMPERATURA, traducir_voltaje),
-             "I": ("Numero Ciclo", 1, ord)}
+             "I": ("Numero Ciclo", 1, devolver_tiempo),
+             "T": ("Temperatura Peltier", TAMANIO_TEMPERATURA, traducir_voltaje)}
 
 
 def main():
@@ -30,14 +37,14 @@ def main():
     start_time = time.time()
     serial_port = sys.stdin  # serial.Serial("/dev/ttyUSB0", 4800)
 
-    temperaturas_peltier = [0,0]
-    tiempo_temperatura_peltier = [0,0]
+    temperaturas_peltier = [0, 0]
+    tiempo_temperatura_peltier = [0, 0]
 
     temperaturas_peltier_iteracion = [0]
     iteracion_temperatura_peltier = [0]
 
-    temperaturas_ambiente = [0,0]
-    tiempo_temperatura_ambiente = [0,0]
+    temperaturas_ambiente = [0, 0]
+    tiempo_temperatura_ambiente = [0, 0]
 
     temperaturas_ambiente_iteracion = [0]
     iteracion_temperatura_ambiente = [0]
@@ -47,7 +54,7 @@ def main():
     while (True):  # Leo el tipo de dato a leer
         i += 1
         plt.clf()
-        read_byte = random.choice(["P","A"][i%2])  # serial_port.read(1)
+        read_byte = random.choice(["P", "A"][i % 2])  # serial_port.read(1)
         if not DATA_TYPE.has_key(read_byte):
             print "Leido: ", ord(read_byte), "no reconocido."
             continue
@@ -70,30 +77,29 @@ def main():
 
         # print data_type, " : ", #f(read_data)
         if data_type == DATA_TYPE["P"][0]:
-            temperaturas_peltier.append(read_data)  #f(read_data))
+            temperaturas_peltier.append(read_data)  # f(read_data))
             tiempo_temperatura_peltier.append(tiempo)
 
             temperaturas_peltier_iteracion.append(read_data)
-            iteracion_temperatura_peltier.append((i/2)%5)
-
+            iteracion_temperatura_peltier.append((i / 2) % 5)
 
             if tiempo_temperatura_peltier[-1] - tiempo_temperatura_peltier[1] > 5.8:
                 temperaturas_peltier = temperaturas_peltier[1:]
                 tiempo_temperatura_peltier = tiempo_temperatura_peltier[1:]
 
         if data_type == DATA_TYPE["A"][0]:
-            temperaturas_ambiente.append(read_data)  #f(read_data))
+            temperaturas_ambiente.append(read_data)  # f(read_data))
             tiempo_temperatura_ambiente.append(tiempo)
 
             temperaturas_ambiente_iteracion.append(read_data)
-            iteracion_temperatura_ambiente.append((i/2)%5)
+            iteracion_temperatura_ambiente.append((i / 2) % 5)
 
             if tiempo_temperatura_ambiente[-1] - tiempo_temperatura_ambiente[1] > 5.8:
                 temperaturas_ambiente = temperaturas_ambiente[1:]
                 tiempo_temperatura_ambiente = tiempo_temperatura_ambiente[1:]
 
 
-        #Temperatura Peltier
+        # Temperatura Peltier
         plt.subplot(221)
         plt.plot(tiempo_temperatura_peltier, temperaturas_peltier, linestyle='-', color='b', label='Temperatura',
                  marker="o")
@@ -103,7 +109,6 @@ def main():
         plt.title('Temperatura Peltier [{0:03d}]'.format(temperaturas_peltier[-1]))
         plt.grid(True, which="both", linestyle="dotted")
 
-
         plt.subplot(222)
         plt.plot(tiempo_temperatura_ambiente, temperaturas_ambiente, linestyle='-', color='r', label='Temperatura',
                  marker="o")
@@ -112,7 +117,6 @@ def main():
         plt.ylabel('Temperatura [C]')
         plt.title('Temperatura Ambiente [{0:03d}]'.format(temperaturas_ambiente[-1]))
         plt.grid(True, which="both", linestyle="dotted")
-
 
         plt.subplot(223)
         plt.plot(tiempo_temperatura_ambiente, temperaturas_ambiente, linestyle='-', color='r', label='Temperatura',
@@ -126,11 +130,13 @@ def main():
         plt.grid(True, which="both", linestyle="dotted")
 
         plt.subplot(224)
-        plt.plot(iteracion_temperatura_ambiente, temperaturas_ambiente_iteracion, linestyle='-', color='r', label='Temperatura',
+        plt.plot(iteracion_temperatura_ambiente, temperaturas_ambiente_iteracion, linestyle='-', color='r',
+                 label='Temperatura',
                  marker="2")
-        plt.plot(iteracion_temperatura_peltier, temperaturas_peltier_iteracion, linestyle='-', color='b', label='Temperatura',
+        plt.plot(iteracion_temperatura_peltier, temperaturas_peltier_iteracion, linestyle='-', color='b',
+                 label='Temperatura',
                  marker="1")
-        plt.axis([0,6,-20, 100])
+        plt.axis([0, 6, -20, 100])
         plt.xlabel('Iteracion')
         plt.ylabel('Temperatura [C]')
         plt.title('Temperaturas durante iteracion')
@@ -138,5 +144,6 @@ def main():
 
         fig.canvas.draw()
         plt.pause(0.001)
+
 
 main()
