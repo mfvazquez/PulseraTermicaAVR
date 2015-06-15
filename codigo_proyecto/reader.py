@@ -5,7 +5,6 @@ import sys
 import random
 import time
 
-import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -19,7 +18,7 @@ def traducir_voltaje(leido):
 
 
 def devolver_tiempo(leido):
-    print time()
+    print time.time()
     return ord(leido)
 
 
@@ -53,7 +52,6 @@ def main():
 
     while (True):  # Leo el tipo de dato a leer
         i += 1
-        plt.clf()
         read_byte = random.choice(["P", "A"][i % 2])  # serial_port.read(1)
         if not DATA_TYPE.has_key(read_byte):
             print "Leido: ", ord(read_byte), "no reconocido."
@@ -98,6 +96,12 @@ def main():
                 temperaturas_ambiente = temperaturas_ambiente[1:]
                 tiempo_temperatura_ambiente = tiempo_temperatura_ambiente[1:]
 
+        time.sleep(0.01)
+
+        if (i%49 != 0):
+            continue
+
+        plt.clf()
 
         # Temperatura Peltier
         plt.subplot(221)
