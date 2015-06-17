@@ -18,6 +18,7 @@ main:
 	out _SFR_IO_ADDR(TCCR2) ,r16
 	
 
+	rcall 	PUENTE_H_Init
 	rcall	USART_Init
 	;rcall 	READ_ADC 						;leer temperatura ambiente
 	rcall	TRANSLATE_TEMP					;obtengo la temperatura
@@ -54,8 +55,6 @@ REDUCIR_LOOP:
 	rcall 	DEMORA							; demora de medio seg
 	rcall 	DEMORA
 
-VERIFICAR_FIN:
-
 	inc 	r20		 						;Cumpli una vuelta
 	ldi 	r16,		6
 	cpse 	r20,		r16					;No saltar si ya ejecuto 5 vueltas
@@ -78,6 +77,14 @@ VERIFICAR_FIN:
 ;rcall USART_Transmit
 
 ;-------------------------------------Funciones---------------------------------------
+
+;-------------------------------------------------------------------------------------
+PUENTE_H_Init:
+	sbi _SFR_IO_ADDR(DDRB),		2 
+	sbi _SFR_IO_ADDR(DDRB),		1 			
+	sbi _SFR_IO_ADDR(PORTB),	1 			
+	cbi _SFR_IO_ADDR(PORTB),	2 			
+	ret
 
 ;-------------------------------------------------------------------------------------
 
@@ -125,7 +132,7 @@ SET_PWM:
 	;ret
 
 	out _SFR_IO_ADDR(OCR2),r29
-	ldi		r26, 	10
+	ldi		r26, 	1
 	sub		r29,	r26
 	ret
 
