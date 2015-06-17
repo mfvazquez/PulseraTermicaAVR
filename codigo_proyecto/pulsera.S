@@ -28,7 +28,7 @@ main:
 
 LOOP:
 	clr 	r20		 						;Iteraciones, se usa para saber la diferencia que se debe obtener
-	ldi 	r29 , 0xFF						; PWM
+	ldi 	r29 , 150						; PWM
 	rcall	SET_PWM
 
 REDUCIR_LOOP:
@@ -49,10 +49,12 @@ REDUCIR_LOOP:
 
 	rcall  	DEMORA
 	rcall 	DEMORA
+	rcall 	DEMORA
 		
 	rcall	TRANSMITIR_DATOS
 
 	rcall 	DEMORA							; demora de medio seg
+	rcall 	DEMORA
 	rcall 	DEMORA
 
 	inc 	r20		 						;Cumpli una vuelta
@@ -61,14 +63,14 @@ REDUCIR_LOOP:
 
 	rjmp	REDUCIR_LOOP					
 
-	ldi 	r29, 		0xFF					; PWM
+	ldi 	r29, 		150					; PWM
 	rcall 	SET_PWM
 	cbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 3
 
-	rcall	STANDBY
-	;rjmp LOOP
+	;rcall	STANDBY
+	rjmp LOOP
 	
 ;SEND SNIPPET
 ;ldi r16,'A' ;tipo de dato a mandar
@@ -132,7 +134,7 @@ SET_PWM:
 	;ret
 
 	out _SFR_IO_ADDR(OCR2),r29
-	ldi		r26, 	1
+	ldi			r26, 	25
 	sub		r29,	r26
 	ret
 
