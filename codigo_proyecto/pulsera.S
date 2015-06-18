@@ -47,14 +47,12 @@ REDUCIR_LOOP:
 
 	rcall	SET_PWM
 
-	rcall  	DEMORA
 	rcall 	DEMORA
 	rcall 	DEMORA
 		
 	rcall	TRANSMITIR_DATOS
 
 	rcall 	DEMORA							; demora de medio seg
-	rcall 	DEMORA
 	rcall 	DEMORA
 
 	inc 	r20		 						;Cumpli una vuelta
@@ -69,7 +67,7 @@ REDUCIR_LOOP:
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 3
 
-	;rcall	STANDBY
+	rcall	STANDBY
 	rjmp LOOP
 	
 ;SEND SNIPPET
@@ -91,33 +89,39 @@ PUENTE_H_Init:
 ;-------------------------------------------------------------------------------------
 
 TRANSMITIR_DATOS:
+	ldi 	r16,		0b11000000			; canal 0 temperatura ambiente
+	rcall 	READ_ADC 						; leer tension del peltier
+	mov		r23,		r16					; guardo la tension
+
+	ldi 	r16,		0b11000001			; canal 1 tension peltier
+	rcall 	READ_ADC 						; leer tension del peltier
+	mov		r24,		r16					; guardo la tension
+
+	ldi 	r16,		0b11000010			; canal 2 temperatura peltier
+	rcall 	READ_ADC 						; leer tension del termistor
+	mov		r25,		r16					; guardo la tension
+
 	ldi 	r16,		'I'					;Envio la iteracion
 	rcall 	USART_Transmit
 	mov 	r16,		r20 
 	rcall 	USART_Transmit
 	
-	ldi 	r16,		0b11000000			; canal 1 temperatura ambiente
-	rcall 	READ_ADC 						; leer tension del peltier
-	mov		r17,		r16					; guardo la tension
+
 	ldi 	r16,		'A' 				; tipo de dato a mandar
 	rcall 	USART_Transmit
-	mov 	r16,		r17
+	mov 	r16,		r23
 	rcall 	USART_Transmit
 
-	ldi 	r16,		0b11000001			; canal 1 tension peltier
-	rcall 	READ_ADC 						; leer tension del peltier
-	mov		r17,		r16					; guardo la tension
+
 	ldi 	r16,		'P' 				; tipo de dato a mandar
 	rcall 	USART_Transmit
-	mov 	r16,		r17
+	mov 	r16,		r24
 	rcall 	USART_Transmit
 
-	ldi 	r16,		0b11000010			; canal 2 temperatura peltier
-	rcall 	READ_ADC 						; leer tension del termistor
-	mov		r17,		r16					; guardo la tension
+
 	ldi 	r16,		'T' 				; tipo de dato a mandar
 	rcall 	USART_Transmit
-	mov 	r16,		r17
+	mov 	r16,		r25
 	rcall 	USART_Transmit
 	ret
 
@@ -171,7 +175,7 @@ STANDBY:
 STANDBY_LOOP:
 	rcall DEMORA
 	inc 	r20
-	ldi 	r16, 11
+	ldi 	r16, 44
 	cpse	r20, r16
 	rjmp 	STANDBY_LOOP	
 	rjmp 	LOOP
@@ -218,13 +222,27 @@ USART_Init:
 ;r16: valor leido devuelto
 
 READ_ADC:
-	;ldi 	r16,				0b11000001  ; Base
-	out _SFR_IO_ADDR(ADMUX), 	r16 		; to ADMUX (select channel 0)
-	ldi 	r16,				0b11101101	; from left to right: ADC Enable, Start Conversion, Free-Running Mode, write
-	out _SFR_IO_ADDR(ADCSR), 	r16 		; zero to ADC Int flag, enable int, prescaler: 101 for XTAL/32
- 
-	in 		r16, 		_SFR_IO_ADDR(ADCL) 	; get the last ADC result, low byte first,
-	in 		r17, 		_SFR_IO_ADDR(ADCH) 	; then high byte
+
+	out 	_SFR_IO_ADDR(ADMUX), 	r16 	; 
+	ldi 	r16,				0b11001101	; 
+	out 	_SFR_IO_ADDR(ADCSRA), 	r16 	;
+
+WAIT_ADC:  
+	
+	in    	r16,		_SFR_IO_ADDR(ADCSRA)       ;READ THE STATUS
+	;andi  	r16,				0b00010000  ;CHECK FLAG (1<<ADIF)
+	;cpi		r16,		0b00010000
+	;sbrs 	_SFR_IO_ADDR(ADCSRA), ADIF 	
+
+	sbrs	r16,4
+
+	rjmp	WAIT_ADC
+
+;	ldi 	r16, 0b11101111
+	sbi	_SFR_IO_ADDR(ADCSRA), 4
+
+	in 		r16, 		_SFR_IO_ADDR(ADCL) 	;
+	in 		r17, 		_SFR_IO_ADDR(ADCH) 	;
 	lsr 	r17
 	ror 	r16
 	lsr 	r17

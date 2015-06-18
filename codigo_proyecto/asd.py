@@ -19,7 +19,7 @@ DATA_TYPE = {"A":("Temperatura Ambiente",TAMANIO_TEMPERATURA,traducir_voltaje),"
 		"I":("\nNumero Ciclo",1,ord), "T":("Temperatura Peltier",TAMANIO_TEMPERATURA,traducir_voltaje)}
 
 def main():
-	serial_port = serial.Serial("/dev/ttyUSB0",4800)
+	serial_port = serial.Serial("/dev/ttyUSB0",38400)
 	while (True): #Leo el tipo de dato a leer
 		read_byte = serial_port.read(1)	
 		if not DATA_TYPE.has_key(read_byte):
