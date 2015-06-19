@@ -47,13 +47,8 @@ REDUCIR_LOOP:
 
 	rcall	SET_PWM
 
-	rcall 	DEMORA
-	rcall 	DEMORA
-		
-	rcall	TRANSMITIR_DATOS
-
-	rcall 	DEMORA							; demora de medio seg
-	rcall 	DEMORA
+	ldi r26, 20
+	rcall ESPERA
 
 	inc 	r20		 						;Cumpli una vuelta
 	ldi 	r16,		6
@@ -67,7 +62,7 @@ REDUCIR_LOOP:
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 3
 
-	rcall	STANDBY
+	rcall STANDBY
 	rjmp LOOP
 	
 ;SEND SNIPPET
@@ -77,6 +72,17 @@ REDUCIR_LOOP:
 ;rcall USART_Transmit
 
 ;-------------------------------------Funciones---------------------------------------
+;-------------------------------------------------------------------------------------
+; espera 1 seg y envia 20 veces datos durante ese seg
+ESPERA:
+	rcall 	DEMORA
+	rcall	TRANSMITIR_DATOS
+	dec 	r26
+	clr 	r16
+	cpse	r26, r16
+	rjmp ESPERA
+	ret
+
 
 ;-------------------------------------------------------------------------------------
 PUENTE_H_Init:
@@ -136,7 +142,7 @@ SET_PWM:
 	;ldi r16,					0x71 		;(01110001) Phase correct, no pre escalar, clear on match
 	;out _SFR_IO_ADDR(TCCR2),	r16
 	;ret
-
+	
 	out _SFR_IO_ADDR(OCR2),r29
 	ldi			r26, 	25
 	sub		r29,	r26
@@ -144,25 +150,28 @@ SET_PWM:
 
 
 ;-------------------------------------------------------------------------------------
-;Standby
 ;Espera durante 1 segundo
 DEMORA:
-	clr 	r16							; valor desde el que empieza a contar
-	out 	_SFR_IO_ADDR(TCNT0), r16
-	ldi 	r16, 1
+	ldi 	r16,	0x3C					; solo cuenta hasta 50000					
+	out 	_SFR_IO_ADDR(TCNT1H), r16
+	ldi 	r16, 	0xAF
+	out 	_SFR_IO_ADDR(TCNT1L), r16
+	ldi		r16, 4						; 0000 0100 habilita poner en 1 
 	out 	_SFR_IO_ADDR(TIFR), r16
-	out 	_SFR_IO_ADDR(TIMSK), r16
-	ldi 	r16, 0b00000101				; clk/1024
-	out		_SFR_IO_ADDR(TCCR0), r16
+	out 	_SFR_IO_ADDR(TIMSK), r16	; el bit 2 de TIRF cuando haya overflow
+	ldi 	r16, 0b00000010				; velocidad: clk/8
+	out		_SFR_IO_ADDR(TCCR1B), r16
 DEMORA_LOOP:
 		
 	in 		r16, _SFR_IO_ADDR(TIFR)
-	sbrs	r16, 0	
+	sbrs	r16, 2
 	rjmp 	DEMORA_LOOP
 	
+	ldi 	r16, 1
+	out 	_SFR_IO_ADDR(TIFR), r16
 	clr 	r16							; finalizo contador
 	out 	_SFR_IO_ADDR(TIFR), r16
-	out		_SFR_IO_ADDR(TCCR0), r16
+	out		_SFR_IO_ADDR(TCCR1B), r16
 		
 	ret
 	
@@ -171,14 +180,9 @@ DEMORA_LOOP:
 ;Standby
 ;Espera durante 10 segundos
 STANDBY:
-	clr 	r20
-STANDBY_LOOP:
-	rcall DEMORA
-	inc 	r20
-	ldi 	r16, 44
-	cpse	r20, r16
-	rjmp 	STANDBY_LOOP	
-	rjmp 	LOOP
+	ldi r26, 200
+	rcall ESPERA
+	ret
 
 ;-------------------------------------------------------------------------------------
 ;Change Mode
