@@ -53,6 +53,11 @@ main:
 LOOP:
 	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
 	ldi 	r29 , 150							;PWM
+
+	rcall 	MODO_FRIO
+	sbic	_SFR_IO_ADDR(PINB), 0
+	rcall	MODO_CALOR
+
 	rcall	SET_PWM
 
 REDUCIR_LOOP:
@@ -111,11 +116,18 @@ ESPERA:
 ;-------------------------------------------------------------------------------------
 PUENTE_H_Init:
 	sbi _SFR_IO_ADDR(DDRB),		2 
-	sbi _SFR_IO_ADDR(DDRB),		1 			
+	sbi _SFR_IO_ADDR(DDRB),		1
+	ret
+
+MODO_FRIO:
 	sbi _SFR_IO_ADDR(PORTB),	1 			
 	cbi _SFR_IO_ADDR(PORTB),	2 			
 	ret
-
+	
+MODO_CALOR:
+	cbi _SFR_IO_ADDR(PORTB),	1 			
+	sbi _SFR_IO_ADDR(PORTB),	2 			
+	ret
 ;-------------------------------------------------------------------------------------
 
 TRANSMITIR_DATOS:
