@@ -3,8 +3,6 @@
 .section .data
 .org 0x200
 
-
-
 .section .text
 .org 0x0000
 .global main
@@ -39,12 +37,19 @@
 ;Saltea el vector de interrupción   
 .org 0x0020
 main:
-	rcall 	STACK_Init
+
+STACK_Init:
+
+	ldi 	Reg_Temporal, 			low(RAMEND)
+	out 	_SFR_IO_ADDR(SPL), 		Reg_Temporal
+	ldi		Reg_Temporal, 			high(RAMEND)
+	out		_SFR_IO_ADDR(SPH), 		Reg_Temporal
+
 	rcall	PWM_Init
 	rcall 	PUENTE_H_Init
 	rcall	USART_Init
 
-	;rcall 	READ_ADC 							;leer temperatura ambiente
+	rcall 	READ_ADC 							;leer temperatura ambiente
 	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
 	rcall	GET_MODE							;obtengo el modo de operacion
 
@@ -57,11 +62,11 @@ LOOP:
 
 REDUCIR_LOOP:
 
-	;rcall 	READ_ADC 							;leer temperatura ambiente
+	rcall 	READ_ADC 							;leer temperatura ambiente
 	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
 	mov		Temp_Ambiente,		Reg_Temporal
 
-	;rcall 	READ_ADC 						;leer temperatura peltier
+	rcall 	READ_ADC 						;leer temperatura peltier
 	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
 	mov		Temp_Peltier,		Reg_Temporal
 
@@ -258,15 +263,10 @@ READ_ADC:
 WAIT_ADC:  
 	
 	in    	Reg_Temporal,		_SFR_IO_ADDR(ADCSRA)       ;READ THE STATUS
-	;andi  	Reg_Temporal,				0b00010000  ;CHECK FLAG (1<<ADIF)
-	;cpi		Reg_Temporal,		0b00010000
-	;sbrs 	_SFR_IO_ADDR(ADCSRA), ADIF 	
-
+	
 	sbrs	Reg_Temporal,4
-
 	rjmp	WAIT_ADC
 
-;	ldi 	Reg_Temporal, 0b11101111
 	sbi	_SFR_IO_ADDR(ADCSRA), 4
 
 	in 		Reg_Temporal, 		_SFR_IO_ADDR(ADCL) 	;
@@ -279,22 +279,13 @@ WAIT_ADC:
 	ret
 
 ;-------------------------------------------------------------------------------------
-;Stack init 
-;Inicializa el stack pointer
-STACK_Init:
-	ldi 	Reg_Temporal, 			low(RAMEND)
-	out 	_SFR_IO_ADDR(SPL), 		Reg_Temporal
-	ldi		Reg_Temporal, 			high(RAMEND)
-	out		_SFR_IO_ADDR(SPH), 		Reg_Temporal
-
-;-------------------------------------------------------------------------------------
 ;PWM init 
 ;Inicializa los puertos de salida del pwm
 PWM_Init:
 	sbi 	_SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	ldi 	Reg_Temporal,			0x71		;(01110001) Phase correct, no pre escalar, clear on match
 	out 	_SFR_IO_ADDR(TCCR2),	Reg_Temporal
-
+	ret
 
 ;-------------------------------------------------------------------------------------
 ;Traducir termocupla
@@ -329,7 +320,7 @@ COLD_MODE:
 
 ;Tablas de conversion 
 ;Formato: [(Tension medida, temperatura),...]  
-TERMOCUPLA: .byte	0,0,0X20,0,0xFF,100 ;0XFF matchea al maximo
-PELTIER: 	.byte	0,0,0X20,0,0XFF,100 ;0xFF matchea al maximo
+TERMOCUPLA: .byte	0x0,0x0,0X20,0x0,0xFF,100 ;0XFF matchea al maximo
+PELTIER: 	.byte	0x0,0x0,0X20,0x0,0XFF,100 ;0xFF matchea al maximo
 
 .end
