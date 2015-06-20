@@ -1,8 +1,17 @@
 #include <avr/io.h>
 
-.section .text
-.global main
+.section .data
+.org 0x200
 
+
+
+.section .text
+.org 0x0000
+.global main
+	rjmp	main
+
+#define low(x)   lo8(x)
+#define high(x)  hi8(x)
 
 ;Regs:
 ;r16: Temporal, pasaje de parametro y de retorno
@@ -24,38 +33,36 @@
 ;Tipos de dato para mandar por serial
 
 #define Dato_Tempe_Ambiente 'A'
-#define Dato_Tempe_Peltier 'P'
-#define Dato_Num_Iteracion 'I'
+#define Dato_Tempe_Peltier  'P'
+#define Dato_Num_Iteracion  'I'
 
-
+;Saltea el vector de interrupción   
+.org 0x0020
 main:
-
-	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
-	ldi Reg_Temporal,0x71 ;(01110001) Phase correct, no pre escalar, clear on match
-	out _SFR_IO_ADDR(TCCR2) ,Reg_Temporal
-	
-
+	rcall 	STACK_Init
+	rcall	PWM_Init
 	rcall 	PUENTE_H_Init
 	rcall	USART_Init
-	;rcall 	READ_ADC 						;leer temperatura ambiente
-	rcall	TRANSLATE_TEMP					;obtengo la temperatura
-	rcall	GET_MODE						;obtengo el modo de operacion
 
-	mov 	Modo_Operacion,		Reg_Temporal					;Modo_Operacion modo de operacion inicial 
+	;rcall 	READ_ADC 							;leer temperatura ambiente
+	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
+	rcall	GET_MODE							;obtengo el modo de operacion
+
+	mov 	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
 
 LOOP:
-	clr 	Contador		 						;Iteraciones, se usa para saber la diferencia que se debe obtener
-	ldi 	r29 , 150						; PWM
+	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
+	ldi 	r29 , 150							;PWM
 	rcall	SET_PWM
 
 REDUCIR_LOOP:
 
-	;rcall 	READ_ADC 						;leer temperatura ambiente
-	rcall	TRANSLATE_TEMP					;obtengo la temperatura
+	;rcall 	READ_ADC 							;leer temperatura ambiente
+	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
 	mov		Temp_Ambiente,		Reg_Temporal
 
 	;rcall 	READ_ADC 						;leer temperatura peltier
-	rcall	TRANSLATE_TEMP					;obtengo la temperatura
+	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
 	mov		Temp_Peltier,		Reg_Temporal
 
 	mov		Reg_Temporal,		Contador
@@ -272,12 +279,36 @@ WAIT_ADC:
 	ret
 
 ;-------------------------------------------------------------------------------------
-;Translate temp
+;Stack init 
+;Inicializa el stack pointer
+STACK_Init:
+	ldi 	Reg_Temporal, 			low(RAMEND)
+	out 	_SFR_IO_ADDR(SPL), 		Reg_Temporal
+	ldi		Reg_Temporal, 			high(RAMEND)
+	out		_SFR_IO_ADDR(SPH), 		Reg_Temporal
+
+;-------------------------------------------------------------------------------------
+;PWM init 
+;Inicializa los puertos de salida del pwm
+PWM_Init:
+	sbi 	_SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
+	ldi 	Reg_Temporal,			0x71		;(01110001) Phase correct, no pre escalar, clear on match
+	out 	_SFR_IO_ADDR(TCCR2),	Reg_Temporal
+
+
+;-------------------------------------------------------------------------------------
+;Traducir termocupla
 ;Convierte el valor recibido por parametro en su temperatura equivalente
 ;entrada: Reg_Temporal: valor leido por el ADC
 ;salida : Reg_Temporal: temperatura traducida
 
-TRANSLATE_TEMP:
+TRADUCIR_TERMOCUPLA:
+	ldi 	   	ZH, 					hi8(pm(TERMOCUPLA))
+	ldi 	   	ZL, 					lo8(pm(TERMOCUPLA))
+LOOP_TERMOCUPLA:
+	lpm			Reg_Temporal,			Z+
+	
+
 	;ldi 	Reg_Temporal,				35
 	ret
 
@@ -295,5 +326,10 @@ HOT_MODE:
 COLD_MODE:
 	ldi 	Reg_Temporal,				0 			;0 es el modo frio
 	ret
+
+;Tablas de conversion 
+;Formato: [(Tension medida, temperatura),...]  
+TERMOCUPLA: .byte	0,0,0X20,0,0xFF,100 ;0XFF matchea al maximo
+PELTIER: 	.byte	0,0,0X20,0,0XFF,100 ;0xFF matchea al maximo
 
 .end

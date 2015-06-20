@@ -7,7 +7,7 @@ clean:
 	rm -f *.hex *.o *.elf
 
 elf:
-	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -O3
+	avr-gcc -Wall -Wextra -pedantic -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -O3
 
 send:	hex
 	sudo avrdude -c usbtiny -p m8 -U flash:w:$(EXE).hex:i
