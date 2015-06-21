@@ -11,12 +11,16 @@
 #define low(x)   lo8(x)
 #define high(x)  hi8(x)
 
+#define	PWM_inicial 100
+.comm PWM	1
+
 ;Regs:
 ;r16: Temporal, pasaje de parametro y de retorno
 #define Reg_Temporal r16
 
 ;r17: Temperatura ambiente
 #define Temp_Ambiente r17
+
 
 ;r18: Temperatura peltier
 #define Temp_Peltier r18
@@ -48,6 +52,8 @@ STACK_Init:
 	rcall	PWM_Init
 	rcall 	PUENTE_H_Init
 	rcall	USART_Init
+	
+	rcall EEPROM_Init
 
 	rcall 	READ_ADC 							;leer temperatura ambiente
 	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
@@ -57,31 +63,32 @@ STACK_Init:
 
 LOOP:
 	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
-	ldi 	r29 , 150							;PWM
 
 	rcall 	MODO_FRIO
 	sbic	_SFR_IO_ADDR(PINB), 0
 	rcall	MODO_CALOR
 
+	ldi 	r29 , PWM_inicial							;PWM
+	sts		PWM, r29
 	rcall	SET_PWM
 
 REDUCIR_LOOP:
 
 	rcall 	READ_ADC 							;leer temperatura ambiente
 	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
-	mov		Temp_Ambiente,		Reg_Temporal
+	;mov		Temp_Ambiente,		Reg_Temporal
 
 	rcall 	READ_ADC 						;leer temperatura peltier
 	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
 	mov		Temp_Peltier,		Reg_Temporal
 
-	mov		Reg_Temporal,		Contador
+	;mov		Reg_Temporal,		Contador
 
 	;calcular duty, devuelve el valor en Reg_Temporal, recibe vuelta en Reg_Temporal, ambiente en Temp_Ambiente y peltier en Temp_Peltier
 
 	rcall	SET_PWM
 
-	ldi r26, 20
+	ldi r26, 200
 	rcall ESPERA
 
 	inc 	Contador		 						;Cumpli una vuelta
@@ -90,11 +97,12 @@ REDUCIR_LOOP:
 
 	rjmp	REDUCIR_LOOP					
 
-	ldi 	r29, 		150					; PWM
+	ldi 	r29 , 0xFF							;PWM
+	sts		PWM, r29
 	rcall 	SET_PWM
 	cbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
-	cbi _SFR_IO_ADDR(PORTB), 3
+	cbi _SFR_IO_ADDR(PORTB), 	3
 
 	rcall STANDBY
 	rjmp LOOP
@@ -114,9 +122,32 @@ ESPERA:
 	dec 	r26
 	clr 	Reg_Temporal
 	cpse	r26, Reg_Temporal
-	rjmp ESPERA
+	rjmp 	ESPERA
 	ret
 
+;-------------------------------------------------------------------------------------
+EEPROM_Init:
+	sbic	_SFR_IO_ADDR(EECR), EEWE
+	rjmp 	EEPROM_Init
+	ldi		r16, 0
+	out		_SFR_IO_ADDR(EEARH), r16
+	ldi		r16, 0x50
+	out		_SFR_IO_ADDR(EEARL), r16
+	ldi		r16, 13
+	out		_SFR_IO_ADDR(EEDR), r16
+	sbi		_SFR_IO_ADDR(EECR), EEMWE
+	sbi		_SFR_IO_ADDR(EECR), EEWE
+	ret
+
+LEER_EEPROM:
+	sbic	_SFR_IO_ADDR(EECR), EEWE
+	rjmp 	LEER_EEPROM
+	ldi		r16, 0
+	out		_SFR_IO_ADDR(EEARH), r16
+	ldi		r16, 0x50
+	out		_SFR_IO_ADDR(EEARL), r16
+	sbi		_SFR_IO_ADDR(EECR), EERE
+	in		r25, _SFR_IO_ADDR(EEDR)
 
 ;-------------------------------------------------------------------------------------
 PUENTE_H_Init:
@@ -144,32 +175,35 @@ TRANSMITIR_DATOS:
 	rcall 	READ_ADC 						; leer tension del peltier
 	mov		r24,		Reg_Temporal					; guardo la tension
 
-	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
-	rcall 	READ_ADC 						; leer tension del termistor
-	mov		r25,		Reg_Temporal					; guardo la tension
-
+;	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
+;	rcall 	READ_ADC 						; leer tension del termistor
+;	mov		r25,		Reg_Temporal					; guardo la tension
+	
+	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
 	rcall 	USART_Transmit
 	mov 	Reg_Temporal,		Contador 
 	rcall 	USART_Transmit
 	
+	rcall 	LEER_EEPROM
+	
+;	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 				; tipo de dato a mandar
+;	rcall 	USART_Transmit
+;	mov 	Reg_Temporal,		r23
+;	rcall 	USART_Transmit
 
-	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r23
-	rcall 	USART_Transmit
 
-
-	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r24
-	rcall 	USART_Transmit
+;	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
+;	rcall 	USART_Transmit
+;	mov 	Reg_Temporal,		r24
+;	rcall 	USART_Transmit
 
 
 	ldi 	Reg_Temporal,		'T' 				; tipo de dato a mandar
 	rcall 	USART_Transmit
 	mov 	Reg_Temporal,		r25
 	rcall 	USART_Transmit
+	
 	ret
 
 
@@ -179,14 +213,13 @@ TRANSMITIR_DATOS:
 ;Reg_Temporal: tiempo en bajo a asignar
 
 SET_PWM:
-	;out _SFR_IO_ADDR(OCR2),		Reg_Temporal
-	;ldi Reg_Temporal,					0x71 		;(01110001) Phase correct, no pre escalar, clear on match
-	;out _SFR_IO_ADDR(TCCR2),	Reg_Temporal
-	;ret
+	lds		r29, PWM	
 	
-	out _SFR_IO_ADDR(OCR2),r29
-	ldi			r26, 	25
+	ldi		r26, 	5
 	sub		r29,	r26
+	
+	out 	_SFR_IO_ADDR(OCR2),r29
+	sts		PWM, r29
 	ret
 
 
@@ -269,7 +302,7 @@ USART_Init:
 READ_ADC:
 
 	out 	_SFR_IO_ADDR(ADMUX), 	Reg_Temporal 	; 
-	ldi 	Reg_Temporal,				0b11001101	; 
+	ldi 	Reg_Temporal,				0b11001111	; 
 	out 	_SFR_IO_ADDR(ADCSRA), 	Reg_Temporal 	;
 
 WAIT_ADC:  
@@ -334,5 +367,6 @@ COLD_MODE:
 ;Formato: [(Tension medida, temperatura),...]  
 TERMOCUPLA: .byte	0x0,0x0,0X20,0x0,0xFF,100 ;0XFF matchea al maximo
 PELTIER: 	.byte	0x0,0x0,0X20,0x0,0XFF,100 ;0xFF matchea al maximo
+PRUEBA:		.byte	10
 
 .end
