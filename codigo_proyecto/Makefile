@@ -1,19 +1,19 @@
 EXE = pulsera
 MICRO = atmega8
 
-all: elf hex
+all: $(EXE).hex $(EXE).eep
 
 clean:
-	rm -f *.hex *.o *.elf
+	rm -f *.hex *.o *.elf *.eep
 
-elf:
-	avr-gcc -Wall -Wextra -pedantic -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).elf -O3
+$(EXE).elf: $(EXE).S
+	avr-gcc -Wall -g2 -gstabs -O0 -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=$(MICRO) -MMD -MP -c -o $(EXE).elf $(EXE).S  -Wa,-as=$(EXE).syb
 
 send:	hex
 	sudo avrdude -c usbtiny -p m8 -U flash:w:$(EXE).hex:i
 
-hex: $(EXE).o
-	avr-objcopy -O ihex $(EXE).o $(EXE).hex
+$(EXE).hex: $(EXE).elf
+	avr-objcopy -R .eeprom -O ihex $(EXE).elf $(EXE).hex
 
-$(EXE).o: $(EXE).S
-	avr-gcc -Wall -g -mmcu=$(MICRO) $(EXE).S -o $(EXE).o -O3
+$(EXE).eep: $(EXE).elf
+	avr-objcopy -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex $(EXE).elf $(EXE).eep
