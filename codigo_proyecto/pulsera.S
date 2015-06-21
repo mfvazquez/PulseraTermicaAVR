@@ -35,8 +35,9 @@
 ;Tipos de dato para mandar por serial
 
 #define Dato_Tempe_Ambiente 'A'
-#define Dato_Tempe_Peltier  'P'
+#define Dato_Tempe_Peltier  'T'
 #define Dato_Num_Iteracion  'I'
+#define Dato_Tension_Salida 'P'
 
 ;Saltea el vector de interrupción   
 .org 0x0020
@@ -53,13 +54,13 @@ STACK_Init:
 	rcall 	PUENTE_H_Init
 	rcall	USART_Init
 	
-	rcall EEPROM_Init
+	;rcall 	EEPROM_Init
 
-	rcall 	READ_ADC 							;leer temperatura ambiente
-	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
-	rcall	GET_MODE							;obtengo el modo de operacion
+	;rcall 	READ_ADC 							;leer temperatura ambiente
+	;rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
+	;rcall	GET_MODE							;obtengo el modo de operacion
 
-	mov 	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
+	;mov 	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
 
 LOOP:
 	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
@@ -74,13 +75,13 @@ LOOP:
 
 REDUCIR_LOOP:
 
-	rcall 	READ_ADC 							;leer temperatura ambiente
-	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
+	;rcall 	READ_ADC 							;leer temperatura ambiente
+	;rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
 	;mov		Temp_Ambiente,		Reg_Temporal
 
-	rcall 	READ_ADC 						;leer temperatura peltier
-	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
-	mov		Temp_Peltier,		Reg_Temporal
+	;rcall 	READ_ADC 						;leer temperatura peltier
+	;rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
+	;mov		Temp_Peltier,		Reg_Temporal
 
 	;mov		Reg_Temporal,		Contador
 
@@ -88,7 +89,7 @@ REDUCIR_LOOP:
 
 	rcall	SET_PWM
 
-	ldi r26, 200
+	ldi r26, 20
 	rcall ESPERA
 
 	inc 	Contador		 						;Cumpli una vuelta
@@ -104,7 +105,7 @@ REDUCIR_LOOP:
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 	3
 
-	rcall STANDBY
+	;rcall STANDBY
 	rjmp LOOP
 	
 ;SEND SNIPPET
@@ -140,14 +141,15 @@ EEPROM_Init:
 	ret
 
 LEER_EEPROM:
-	sbic	_SFR_IO_ADDR(EECR), EEWE
+	sbic	_SFR_IO_ADDR(EECR), EEWE	; 	espera hasta que la ultima escritura este terminada
 	rjmp 	LEER_EEPROM
-	ldi		r16, 0
-	out		_SFR_IO_ADDR(EEARH), r16
+	ldi		r16, 0						; 	carga la direccion de memoria a ser leida
+	out		_SFR_IO_ADDR(EEARH), r16	
 	ldi		r16, 0x50
 	out		_SFR_IO_ADDR(EEARL), r16
-	sbi		_SFR_IO_ADDR(EECR), EERE
-	in		r25, _SFR_IO_ADDR(EEDR)
+	sbi		_SFR_IO_ADDR(EECR), EERE	;	habilita el modo lectura
+	in		r25, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
+	ret
 
 ;-------------------------------------------------------------------------------------
 PUENTE_H_Init:
@@ -175,31 +177,29 @@ TRANSMITIR_DATOS:
 	rcall 	READ_ADC 						; leer tension del peltier
 	mov		r24,		Reg_Temporal					; guardo la tension
 
-;	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
-;	rcall 	READ_ADC 						; leer tension del termistor
-;	mov		r25,		Reg_Temporal					; guardo la tension
+	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
+	rcall 	READ_ADC 						; leer tension del termistor
+	mov		r25,		Reg_Temporal					; guardo la tension
 	
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
 	rcall 	USART_Transmit
 	mov 	Reg_Temporal,		Contador 
 	rcall 	USART_Transmit
-	
-	rcall 	LEER_EEPROM
-	
-;	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 				; tipo de dato a mandar
-;	rcall 	USART_Transmit
-;	mov 	Reg_Temporal,		r23
-;	rcall 	USART_Transmit
+		
+	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	Reg_Temporal,		r23
+	rcall 	USART_Transmit
 
 
-;	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
-;	rcall 	USART_Transmit
-;	mov 	Reg_Temporal,		r24
-;	rcall 	USART_Transmit
+	ldi 	Reg_Temporal,		Dato_Tension_Salida 				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	Reg_Temporal,		r24
+	rcall 	USART_Transmit
 
 
-	ldi 	Reg_Temporal,		'T' 				; tipo de dato a mandar
+	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
 	rcall 	USART_Transmit
 	mov 	Reg_Temporal,		r25
 	rcall 	USART_Transmit
@@ -218,6 +218,7 @@ SET_PWM:
 	ldi		r26, 	5
 	sub		r29,	r26
 	
+	ldi		r29, 65
 	out 	_SFR_IO_ADDR(OCR2),r29
 	sts		PWM, r29
 	ret
