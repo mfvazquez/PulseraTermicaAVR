@@ -124,7 +124,7 @@ LDFLAGS += -lm
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+AVRDUDE_FLAGS = -p $(MCU) -c $(AVRDUDE_PROGRAMMER)
 
 # Uncomment the following if you want avrdude's erase cycle counter.
 # Note that this counter needs to be initialized first using -Yn,
@@ -141,10 +141,10 @@ AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 #AVRDUDE_FLAGS += -v -v
 
 #Run while cable attached or don't
-AVRDUDE_FLAGS += -E reset #keep chip disabled while cable attached
+#AVRDUDE_FLAGS += -E reset #keep chip disabled while cable attached
 #AVRDUDE_FLAGS += -E noreset
 
-#AVRDUDE_WRITE_FLASH = -U lfuse:w:0x04:m #run with 8 Mhz clock
+AVRDUDE_WRITE_FLASH = -U lfuse:w:0xE4:m #run with 8 Mhz clock
 
 #AVRDUDE_WRITE_FLASH = -U lfuse:w:0x21:m #run with 1 Mhz clock #default clock mode
 
@@ -277,7 +277,7 @@ extcoff: $(TARGET).elf
 
 # Program the device.  
 program: $(TARGET).hex $(TARGET).eep
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
+	sudo $(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
 
