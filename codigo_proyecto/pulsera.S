@@ -367,6 +367,11 @@ COLD_MODE:
 ;Formato: [(Tension medida, temperatura),...]  
 TERMOCUPLA: .byte	0x0,0x0,0X20,0x0,0xFF,100 ;0XFF matchea al maximo
 PELTIER: 	.byte	0x0,0x0,0X20,0x0,0XFF,100 ;0xFF matchea al maximo
-PRUEBA:		.byte	10
+PRUEBA:		.ascii  "Hola Mundo"
+
+
+.section .eeprom
+.org 0x0
+.ascii "Hola Mundo"
 
 .end

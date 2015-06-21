@@ -17,3 +17,6 @@ $(EXE).hex: $(EXE).elf
 
 $(EXE).eep: $(EXE).elf
 	avr-objcopy -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex $(EXE).elf $(EXE).eep
+
+show_size: $(EXE).elf
+	avr-size --format=avr --mcu=atmega8 $(EXE).elf 
