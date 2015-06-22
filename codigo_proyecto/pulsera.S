@@ -6,9 +6,16 @@
 Temp_Ambiente: 	.byte 	0
 Temp_Disipador: .byte 0
 Temp_Peltier: .byte 0
+Tension_Salida: .byte 0
+
 Modo_Operacion: .byte 0
+
+Modo_Standby: .byte 0
+
 PWM: .byte	0
-POS: .byte	0; 	BORRARRRRRRRRRRRR DESPUES
+Tension_min:	.byte 0
+Tension_max:	.byte 0
+Iterador:		.byte 0
 
 .section .text
 .org 0x0
@@ -19,7 +26,6 @@ rjmp	main
 #define high(x)  hi8(x)
 
 #define	PWM_inicial 100
-#define Temp_25		170
 
 ;Regs:
 ;r16: Temporal, pasaje de parametro y de retorno
@@ -32,9 +38,15 @@ rjmp	main
 ;Tipos de dato para mandar por serial
 
 #define Dato_Tempe_Ambiente 'A'
-#define Dato_Tempe_Peltier  'T'
+#define Dato_Tempe_Disipador  'T'
 #define Dato_Num_Iteracion  'I'
 #define Dato_Tension_Salida 'P'
+#define Dato_Tempe_Peltier  'X'
+#define Dato_PWM  'W'
+#define Dato_max	'M'
+#define Dato_min	'N'
+
+#define Eeprom_Inicio  0x64
 
 ;Saltea el vector de interrupción   
 .org 0x0020
@@ -50,51 +62,30 @@ STACK_Init:
 	rcall 	PUENTE_H_Init
 	rcall	USART_Init
 
-	rcall 	READ_ADC 							;leer temperatura ambiente
-	rcall	TRADUCIR_TERMISTOR					;obtengo la temperatura
-	rcall	GET_MODE							;obtengo el modo de operacion
-
-	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
-
 LOOP:
 	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
-
-	rcall 	MODO_FRIO
-	sbic	_SFR_IO_ADDR(PINB), 0
-	rcall	MODO_CALOR
+	
+	rcall	GET_MODE							;obtengo el modo de operacion
 
 	ldi 	r29 , PWM_inicial							;PWM
 	sts		PWM, r29
-	rcall	SET_PWM
+	rcall	RESET_PWM
 
 REDUCIR_LOOP:
 
-	rcall 	READ_ADC 							;leer temperatura ambiente
-	rcall	TRADUCIR_TERMISTOR						;obtengo la temperatura
-	sts		Temp_Ambiente, Reg_Temporal
-
-	rcall 	READ_ADC 						;leer temperatura peltier
-	rcall	TRADUCIR_TERMISTOR					;obtengo la temperatura
-	sts		Temp_Peltier,	Reg_Temporal
-
 	mov		Reg_Temporal,		Contador
 
-	;calcular duty, devuelve el valor en Reg_Temporal, recibe vuelta en Reg_Temporal, ambiente en Temp_Ambiente y peltier en Temp_Peltier
-
-	rcall	SET_PWM
-
-	ldi r26, 20
+	ldi r27, 10
 	rcall ESPERA
-
+	rcall	AUMENTAR_PULSO
+	
+	
 	inc 	Contador		 						;Cumpli una vuelta
 	ldi 	Reg_Temporal,		6
 	cpse 	Contador,		Reg_Temporal			;No saltar si ya ejecuto 5 vueltas
 
 	rjmp	REDUCIR_LOOP					
 
-	ldi 	r29 , 0xFF							;PWM
-	sts		PWM, r29
-	rcall 	SET_PWM
 	cbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 	3
@@ -109,31 +100,40 @@ REDUCIR_LOOP:
 ;rcall USART_Transmit
 
 ;-------------------------------------Funciones---------------------------------------
+RESET_PWM:
+	clr		r17								; 8 bits mas significativos de la direccion de la eeprom a leer
+	ldi		Reg_Temporal, Eeprom_Inicio
+	inc		Reg_Temporal
+	inc		Reg_Temporal
+	sts		Iterador, Reg_Temporal
+	rcall	LEER_EEPROM
+	sts		Tension_min, r25
+
+	inc		Reg_Temporal
+	inc		Reg_Temporal
+	rcall	LEER_EEPROM
+	sts		Tension_max, r25
+	
+	lds		r29, PWM
+	out 	_SFR_IO_ADDR(OCR2),r29
+	
+	ret
 ;-------------------------------------------------------------------------------------
-; espera 1 seg y envia 20 veces datos durante ese seg
+; espera r27 * 100mseg
 ESPERA:
+	rcall	SET_PWM
 	rcall 	DEMORA
 	rcall	TRANSMITIR_DATOS
-	dec 	r26
+	dec 	r27
 	clr 	Reg_Temporal
-	cpse	r26, Reg_Temporal
+	cpse	r27, Reg_Temporal
 	rjmp 	ESPERA
 	ret
 
 ;-------------------------------------------------------------------------------------
-EEPROM_Init:
-	sbic	_SFR_IO_ADDR(EECR), EEWE
-	rjmp 	EEPROM_Init
-	ldi		r16, 0
-	out		_SFR_IO_ADDR(EEARH), r16
-	ldi		r16, 0x50
-	out		_SFR_IO_ADDR(EEARL), r16
-	ldi		r16, 13
-	out		_SFR_IO_ADDR(EEDR), r16
-	sbi		_SFR_IO_ADDR(EECR), EEMWE
-	sbi		_SFR_IO_ADDR(EECR), EEWE
-	ret
-
+; Lee de eeprom en la direccion indicada en los registros r17 para los 8 bits
+; mas significativos y r16 para los 8 bits menos significativos. Guarda el contenido
+; en el registro r25
 LEER_EEPROM:
 	sbic	_SFR_IO_ADDR(EECR), EEWE	; 	espera hasta que la ultima escritura este terminada
 	rjmp 	LEER_EEPROM
@@ -144,6 +144,7 @@ LEER_EEPROM:
 	ret
 
 ;-------------------------------------------------------------------------------------
+; Inicializa el puente H seteando los pines 1 y 2 del puerto B como salida.
 PUENTE_H_Init:
 	sbi _SFR_IO_ADDR(DDRB),		2 
 	sbi _SFR_IO_ADDR(DDRB),		1
@@ -164,16 +165,19 @@ TRANSMITIR_DATOS:
 	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
 	rcall 	READ_ADC 								; leer tension del peltier
 	rcall	TRADUCIR_TERMISTOR
-	sts 	Reg_Temporal, Temp_Ambiente
+	sts 	Temp_Ambiente, Reg_Temporal
+
 
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
 	rcall 	READ_ADC 								; leer tension del peltier
-	mov		r24,		Reg_Temporal				; guardo la tension
+	sts		Tension_Salida,		Reg_Temporal				; guardo la tension
 
-	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
+	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura disipador
 	rcall 	READ_ADC 								; leer tension del termistor
-	mov		r25,		Reg_Temporal				; guardo la tension
+	rcall	TRADUCIR_TERMISTOR
+	sts		Temp_Disipador,		Reg_Temporal		; guardo la tension
 	
+	rcall  TRADUCIR_PELTIER							; Calcula la temperatura del peltier
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
 	rcall 	USART_Transmit
@@ -188,14 +192,34 @@ TRANSMITIR_DATOS:
 
 	ldi 	Reg_Temporal,		Dato_Tension_Salida 				; tipo de dato a mandar
 	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r24
+	lds 	Reg_Temporal,		Tension_Salida
 	rcall 	USART_Transmit
 
 	
-	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
+	ldi 	Reg_Temporal,		Dato_Tempe_Disipador				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		Temp_Disipador
+	rcall 	USART_Transmit
+	
+	ldi 	Reg_Temporal,		Dato_Tempe_Peltier				; tipo de dato a mandar
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Temp_Peltier
-	mov		Reg_Temporal,		r25
+	rcall 	USART_Transmit
+	
+	ldi 	Reg_Temporal,		Dato_PWM				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		PWM
+	rcall 	USART_Transmit
+	
+		
+	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		Tension_min
+	rcall 	USART_Transmit
+
+	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		Tension_max
 	rcall 	USART_Transmit
 	
 	ret
@@ -207,27 +231,66 @@ TRANSMITIR_DATOS:
 ;Reg_Temporal: tiempo en bajo a asignar
 
 SET_PWM:
-	lds		r29, PWM	
-
-	out 	_SFR_IO_ADDR(OCR2),r29
+	lds		r30, PWM
+	lds		Reg_Temporal, Modo_Standby
+	cpi		Reg_Temporal, 1
+	breq	APLICAR_CAMBIO					;Si esta en modo standby no realiza cambios
 	
-	ldi		r26, 	5
-	sub		r29,	r26
-	sts		PWM, r29
+	
+	lds		r29, Tension_Salida	
+
+	lds		r17, Tension_min
+	lds		r18, Tension_max	
+	ldi		r26, 	2				;valor a ser restado o sumado
+	
+	cp		r29, r17
+	brlo	AUMENTAR
+	
+;	cp		r29, r18
+;	brlo	APLICAR_CAMBIO	
+
+;DISMINUIR:	
+;	add		r30,	r26
+	rjmp	APLICAR_CAMBIO
+AUMENTAR:
+	sub		r30,	r26
+APLICAR_CAMBIO:
+	sts		PWM, r30
+	out 	_SFR_IO_ADDR(OCR2),r30
+	ret
+;-------------------------------------------------------------------------------------
+
+AUMENTAR_PULSO:
+	clr		r17								;  8 bits mas significativos de la direccion de la eeprom a leer
+	
+	lds		Reg_Temporal,	Iterador
+	inc		Reg_Temporal
+	inc		Reg_Temporal
+	sts		Iterador, Reg_Temporal
+	
+	rcall	LEER_EEPROM
+	sts		Tension_min, r25
+	inc		Reg_Temporal
+	inc		Reg_Temporal
+	rcall	LEER_EEPROM
+	sts		Tension_max, r25
+	
+	ldi		r26, 3
+	rcall	AUMENTAR
+	
 	ret
 
-
 ;-------------------------------------------------------------------------------------
-;Espera durante 1 segundo
+;Espera durante 100mseg
 DEMORA:
-	ldi 	Reg_Temporal,	0x3C					; solo cuenta hasta 50000					
+	ldi 	Reg_Temporal,	0xCF					; Valores de los que empieza a contar					
 	out 	_SFR_IO_ADDR(TCNT1H), Reg_Temporal
-	ldi 	Reg_Temporal, 	0xAF
+	ldi 	Reg_Temporal, 	0x2B
 	out 	_SFR_IO_ADDR(TCNT1L), Reg_Temporal
 	ldi		Reg_Temporal, 4						; 0000 0100 habilita poner en 1 
 	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
 	out 	_SFR_IO_ADDR(TIMSK), Reg_Temporal	; el bit 2 de TIRF cuando haya overflow
-	ldi 	Reg_Temporal, 0b00000010				; velocidad: clk/8
+	ldi 	Reg_Temporal, 0b00000011				; velocidad: clk/64
 	out		_SFR_IO_ADDR(TCCR1B), Reg_Temporal
 DEMORA_LOOP:
 		
@@ -248,8 +311,15 @@ DEMORA_LOOP:
 ;Standby
 ;Espera durante 10 segundos
 STANDBY:
-	ldi r26, 200
+	ldi 	r29 , 0xFF							;PWM
+	sts		PWM, r29
+	rcall 	RESET_PWM
+	ldi	Reg_Temporal, 1
+	sts	Modo_Standby, Reg_Temporal
+	ldi r27, 100
 	rcall ESPERA
+	clr	Reg_Temporal
+	sts	Modo_Standby, Reg_Temporal
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -309,10 +379,10 @@ WAIT_ADC:
 	sbi	_SFR_IO_ADDR(ADCSRA), 4
 
 	in 		Reg_Temporal, 		_SFR_IO_ADDR(ADCL) 	;
-	in 		17, 		_SFR_IO_ADDR(ADCH) 	;
-	lsr 	17
+	in 		r17, 		_SFR_IO_ADDR(ADCH) 	;
+	lsr 	r17
 	ror 	Reg_Temporal
-	lsr 	17
+	lsr 	r17
 	ror 	Reg_Temporal
 
 	ret
@@ -337,8 +407,10 @@ TRADUCIR_TERMISTOR:
 	ldi 	Reg_Temporal,	0 			;indice
 LOOP_BUSQUEDA_TERM:
 	rcall	LEER_EEPROM
+	cpi		r25, 0
+	breq	FIN_TABLA
 	cp 		r18,r25						;leido vs valor tabla
-	brge	END_TERMISTOR
+	brsh	END_TERMISTOR
 	inc 	Reg_Temporal
 	inc 	Reg_Temporal
 	rjmp	LOOP_BUSQUEDA_TERM
@@ -349,62 +421,111 @@ END_TERMISTOR:
 	mov 	Reg_Temporal,  			r25
 	ret
 
+FIN_TABLA:
+	dec	Reg_Temporal
+	dec	Reg_Temporal
+	rjmp	END_TERMISTOR
+
 ;-------------------------------------------------------------------------------------
 ;Traducir peltier
 ;Convierte el valor recibido por parametro en su temperatura equivalente
-;entrada: Reg_Temporal: valor leido por el ADC
+;entrada: Temp_Disipador, Tension_Salida, Modo_Operacion
+;salida: Temp_Peltier
 
 TRADUCIR_PELTIER:
-	mov		r18,		Reg_Temporal
-	ldi 	r17,		0 				;tabla termistor
-	ldi 	Reg_Temporal,	0 			;indice
-LOOP_BUSQUEDA_PELT:
+	lds		r18, Tension_Salida
+	ldi 	r17, 0 							;tabla termistor
+	ldi 	Reg_Temporal, Eeprom_Inicio 			;indice
+LOOP_BUSQUEDA_TERM_PELTIER:
 	rcall	LEER_EEPROM
-	cp 		r18,r25						;leido vs valor tabla
-	brlo	END_PELTIER
+	cpi		r25, 0xFF
+	breq	FIN_TABLA_PELTIER
+	cp 		r25,r18						; valor tabla vs leido
+	brsh	END_PELTIER
 	inc 	Reg_Temporal
 	inc 	Reg_Temporal
-	rjmp	LOOP_BUSQUEDA_PELT
-
-END_PELTIER:
-	inc 	Reg_Temporal
-	rcall	LEER_EEPROM
-	mov 	Reg_Temporal,  			r25
-	lds		r17,					Temp_Disipador
-	lds		r18,					Modo_Operacion
+	rjmp	LOOP_BUSQUEDA_TERM_PELTIER
+END_PELTIER:	
+	inc		Reg_Temporal
+	rcall 	LEER_EEPROM
+	lds		r17, Temp_Disipador
+	lds		r18, Modo_Operacion
 	sbrc	r18,0
+	
+	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	Reg_Temporal,		r17
+	rcall 	USART_Transmit
+
+	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	mov 	Reg_Temporal,		r25
+	rcall 	USART_Transmit
+	
+	mov		Reg_Temporal, r25	
+
+	
 	rjmp 	CALCULO_CALOR
 	rjmp	CALCULO_FRIO
 	
 CALCULO_CALOR:
 	add  	Reg_Temporal,r17
-	sts 	Reg_Temporal,Temp_Peltier
+	sts 	Temp_Peltier, Reg_Temporal
 	ret
 
 CALCULO_FRIO:
 	sub  	Reg_Temporal,r17
-	sts 	Reg_Temporal,Temp_Peltier
+	sts 	Temp_Peltier, Reg_Temporal
 	ret
+	
+FIN_TABLA_PELTIER:
+	dec	Reg_Temporal
+	dec Reg_Temporal
+	rjmp	END_PELTIER
+
 ;-------------------------------------------------------------------------------------
 ;Get mode
 ;Devuelve el valor del modo en el cual se ejecuta para la temperatura Reg_Temporal
 ;Reg_Temporal: temperatura leida
 ;Reg_Temporal: valor leido devuelto
 GET_MODE:
-	cpi 	Reg_Temporal,				24			;temperatura arbitraria para el modo calor
+	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
+	rcall 	READ_ADC 	
+	rcall	TRADUCIR_TERMISTOR						;obtengo la temperatura
+	cpi 	Reg_Temporal,				50			;temperatura arbitraria para el modo calor
 	brsh	COLD_MODE
+	
 HOT_MODE:
+	sbic	_SFR_IO_ADDR(PINB), 0					; Si el pin esta en 1 cambia de modo
+	rjmp	SET_COLD
+
+SET_HOT:	
+	cbi _SFR_IO_ADDR(PORTB),	1 			
+	sbi _SFR_IO_ADDR(PORTB),	2 			
+
 	ldi 	Reg_Temporal,				1 			;1 es modo calor
+	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
+
 	ret
+
 COLD_MODE:
+	sbic	_SFR_IO_ADDR(PINB), 0					; Si el pin esta en 1 cambia de modo
+	rjmp	SET_HOT
+	
+SET_COLD:
+	sbi _SFR_IO_ADDR(PORTB),	1 			
+	cbi _SFR_IO_ADDR(PORTB),	2 
+	
 	ldi 	Reg_Temporal,				0 			;0 es el modo frio
+	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
+
 	ret
 
 .section .eeprom
 .org  0x0000
 
 ;Tablas de conversion 
-;Formato: [(Tension medida, Temperatura*2),...]  
+;Formato: [(Tension medida, Temperatura*2),...]
 .byte	214	,	14
 .byte	211	,	16
 .byte	209	,	18
@@ -439,15 +560,25 @@ COLD_MODE:
 .byte	143	,	76
 .byte	141	,	78
 .byte	140	,	80
+.byte	0, 0 ;FIN DE TABLA
 
 ;Formato: [Tension minima, Dif_Temperatura*2]
-.org	0x0100
-.byte	51	,	1
-.byte	100	,	2
-.byte	117	,	4
-.byte	125	,	6
-.byte	195	,	7
-.byte	200	,	9
-
+.org	0x0064
+.byte	0	,	0
+.byte	54	,	2
+.byte	75	,	4
+.byte	100	,	6
+.byte	105 ,	8
+.byte	117	,	10
+.byte	125	,	14
+.byte	135 ,	16
+.byte	142 ,	18
+.byte	153	,	20
+.byte	167	,	22
+.byte	180	,	24
+.byte	195	,	26
+.byte	200	,	28
+.byte	210	,	30
+.byte	0xFF, 0xFF ;FIN DE TABLA
 
 .end
