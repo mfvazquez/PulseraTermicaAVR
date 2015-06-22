@@ -7,7 +7,7 @@ Temp_Ambiente: 	.byte 	0
 Temp_Peltier: .byte 0
 Modo_Operacion: .byte 0
 PWM: .byte	0
-POS: .byte	0
+POS: .byte	0; 	BORRARRRRRRRRRRRR DESPUES
 
 .section .text
 .org 0x0
@@ -17,7 +17,8 @@ rjmp	main
 #define low(x)   lo8(x)
 #define high(x)  hi8(x)
 
-#define	PWM_inicial 90
+#define	PWM_inicial 100
+#define Temp_25		170
 
 ;Regs:
 ;r16: Temporal, pasaje de parametro y de retorno
@@ -49,7 +50,7 @@ STACK_Init:
 	rcall	USART_Init
 
 	rcall 	READ_ADC 							;leer temperatura ambiente
-	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
+	rcall	TRADUCIR_TERMISTOR					;obtengo la temperatura
 	rcall	GET_MODE							;obtengo el modo de operacion
 
 	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
@@ -68,11 +69,11 @@ LOOP:
 REDUCIR_LOOP:
 
 	rcall 	READ_ADC 							;leer temperatura ambiente
-	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
+	rcall	TRADUCIR_TERMISTOR						;obtengo la temperatura
 	sts		Temp_Ambiente, Reg_Temporal
 
 	rcall 	READ_ADC 						;leer temperatura peltier
-	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
+	rcall	TRADUCIR_TERMISTOR					;obtengo la temperatura
 	sts		Temp_Peltier,	Reg_Temporal
 
 	mov		Reg_Temporal,		Contador
@@ -167,7 +168,7 @@ TRANSMITIR_DATOS:
 	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
 	rcall 	READ_ADC 								; leer tension del peltier
 	;mov		r23,		Reg_Temporal			; guardo la tension
-	rcall	TRADUCIR_TERMOCUPLA
+	rcall	TRADUCIR_TERMISTOR
 
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
 	rcall 	READ_ADC 								; leer tension del peltier
@@ -211,11 +212,11 @@ TRANSMITIR_DATOS:
 
 SET_PWM:
 	lds		r29, PWM	
+
+	out 	_SFR_IO_ADDR(OCR2),r29
 	
 	ldi		r26, 	5
 	sub		r29,	r26
-	
-	out 	_SFR_IO_ADDR(OCR2),r29
 	sts		PWM, r29
 	ret
 
@@ -330,11 +331,11 @@ PWM_Init:
 	ret
 
 ;-------------------------------------------------------------------------------------
-;Traducir termocupla
+;Traducir termistor
 ;Convierte el valor recibido por parametro en su temperatura equivalente
 ;entrada: Reg_Temporal: valor leido por el ADC
 
-TRADUCIR_TERMOCUPLA:
+TRADUCIR_TERMISTOR:
 	sts 	Temp_Ambiente,  			Reg_Temporal
 	ret
 
@@ -403,7 +404,7 @@ COLD_MODE:
 .byte	140	,	80
 
 ;Formato: [Tension minima, Dif_Temperatura*2]
-.org	50
+.org	0x0100
 .byte	51	,	1
 .byte	100	,	2
 .byte	117	,	4
