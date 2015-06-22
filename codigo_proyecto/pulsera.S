@@ -136,15 +136,14 @@ EEPROM_Init:
 LEER_EEPROM:
 	sbic	_SFR_IO_ADDR(EECR), EEWE	; 	espera hasta que la ultima escritura este terminada
 	rjmp 	LEER_EEPROM
-	ldi		r16, 0						; 	carga la direccion de memoria a ser leida
-	out		_SFR_IO_ADDR(EEARH), r16	
+	out		_SFR_IO_ADDR(EEARH), r17	;	r17 elige la tala	
 	;ldi		r16, 120
 	lds		r16, POS
-	out		_SFR_IO_ADDR(EEARL), r16
+	out		_SFR_IO_ADDR(EEARL), r16	;	r16 el campo
 	inc		r16
 	sts		POS, r16
 	sbi		_SFR_IO_ADDR(EECR), EERE	;	habilita el modo lectura
-	in		r25, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
+	in		r16, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
 	ret
 
 ;-------------------------------------------------------------------------------------
