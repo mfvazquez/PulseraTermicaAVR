@@ -3,7 +3,7 @@
 \usepackage[spanish,es-tabla]{babel}  	% Traduce los textos a castellano
 \usepackage[utf8]{inputenc}	% Permite escribir directamente áéíóúñ
 \usepackage{t1enc}            	% Agrega caracteres extendidos al font
-\usepackage{amsmath} 		%Permite imprimir mas opcciones matematicas
+\usepackage{amsmath} 		%Permite imprimir mas opciones matemáticas
 \usepackage{graphicx}		%Permite agregar imagenes al informe
 \usepackage{float} 		%Permite utilizar H para colocar las imagenes en un lugar especifico 
 \usepackage{units}
@@ -82,7 +82,7 @@
  
 
 \begin{document}
-\title{\textbf{Anteproyecto: Dispositivo autoregulador de la percepción térmica corporal}}
+\title{\textbf{Proyecto: Dispositivo autorregulador de la percepción térmica corporal}}
 \author{
   Martinez, Gaston - 91383\\
   \texttt{gaston.martinez.90@gmail.com}  
@@ -90,7 +90,7 @@
    Vázquez, Matías - 91523\\
   \texttt{mfvazquez@gmail.com}
 }
-\date{22 de abril de 2015}
+\date{\today}
 \maketitle
 
 \begin{abstract} %Resumen
@@ -211,6 +211,25 @@ de temperatura de $2\, \unit{^oC}$ entre una de las caras de la celda Peltier
 y la temperatura ambiente. Que se deberá obtener experimentalmente con
 la celda Peltier utilizada.
 
+\section{Especificaciones del microcontrolador}
+
+\subsection{Microcontrolador}
+Para este proyecto se utilizo un microcontrolador \texttt{Atmega8L}. El datasheet del mismo se puede obtener en la pagina de Atmel\cite{datasheet}
+\subsection{Configuraciones}
+\subsubsection{Clock}
+El clock del microcontrolador fue establecido en 8MHz. 
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+a&a&a&a&a&a&a&a\\\hline
+0&0&0&0&0&0&0&0\\\hline
+\end{tabular}
+\end{center}
+\subsubsection{PWM}
+El PWM 
+\subsection{}
+
+\newpage
 \begin{thebibliography}{9}
 
 \bibitem{embrlabs}
@@ -221,6 +240,9 @@ la celda Peltier utilizada.
   
 \bibitem{video MIT}
   \ULurl{https://youtu.be/kvUMCip-r4A}
+
+\bibitem{datasheet}
+  \ULurl{http://www.atmel.com/images/atmel-2486-8-bit-avr-microcontroller-atmega8_l_datasheet.pdf}
 
 \end{thebibliography}
 
