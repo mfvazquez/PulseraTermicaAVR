@@ -1,10 +1,14 @@
 #include <avr/io.h>
 
 .section .data
-.org 0x200
+.org 0x000
+
+Temp_Ambiente: 	.byte 	0
+Temp_Peltier: .byte 0
+Modo_Operacion: .byte 0
 
 .section .text
-.org 0x0000
+.org 0x0
 .global main
 	rjmp	main
 
@@ -18,18 +22,8 @@
 ;r16: Temporal, pasaje de parametro y de retorno
 #define Reg_Temporal r16
 
-;r17: Temperatura ambiente
-#define Temp_Ambiente r17
-
-
-;r18: Temperatura peltier
-#define Temp_Peltier r18
-
 ;r20: Contador
 #define Contador r20
-
-;r22: Modo de operacion
-#define Modo_Operacion r22
 
 ;Constantes:
 ;Tipos de dato para mandar por serial
@@ -56,11 +50,11 @@ STACK_Init:
 	
 	;rcall 	EEPROM_Init
 
-	;rcall 	READ_ADC 							;leer temperatura ambiente
-	;rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
-	;rcall	GET_MODE							;obtengo el modo de operacion
+	rcall 	READ_ADC 							;leer temperatura ambiente
+	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
+	rcall	GET_MODE							;obtengo el modo de operacion
 
-	;mov 	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
+	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
 
 LOOP:
 	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
@@ -75,15 +69,15 @@ LOOP:
 
 REDUCIR_LOOP:
 
-	;rcall 	READ_ADC 							;leer temperatura ambiente
-	;rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
-	;mov		Temp_Ambiente,		Reg_Temporal
+	rcall 	READ_ADC 							;leer temperatura ambiente
+	rcall	TRADUCIR_TERMOCUPLA						;obtengo la temperatura
+	sts		Temp_Ambiente, Reg_Temporal
 
-	;rcall 	READ_ADC 						;leer temperatura peltier
-	;rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
-	;mov		Temp_Peltier,		Reg_Temporal
+	rcall 	READ_ADC 						;leer temperatura peltier
+	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
+	sts		Temp_Peltier,	Reg_Temporal
 
-	;mov		Reg_Temporal,		Contador
+	mov		Reg_Temporal,		Contador
 
 	;calcular duty, devuelve el valor en Reg_Temporal, recibe vuelta en Reg_Temporal, ambiente en Temp_Ambiente y peltier en Temp_Peltier
 
@@ -94,7 +88,7 @@ REDUCIR_LOOP:
 
 	inc 	Contador		 						;Cumpli una vuelta
 	ldi 	Reg_Temporal,		6
-	cpse 	Contador,		Reg_Temporal					;No saltar si ya ejecuto 5 vueltas
+	cpse 	Contador,		Reg_Temporal			;No saltar si ya ejecuto 5 vueltas
 
 	rjmp	REDUCIR_LOOP					
 
@@ -105,7 +99,7 @@ REDUCIR_LOOP:
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 	3
 
-	;rcall STANDBY
+	rcall STANDBY
 	rjmp LOOP
 	
 ;SEND SNIPPET
@@ -170,16 +164,17 @@ MODO_CALOR:
 
 TRANSMITIR_DATOS:
 	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
-	rcall 	READ_ADC 						; leer tension del peltier
-	mov		r23,		Reg_Temporal					; guardo la tension
+	rcall 	READ_ADC 								; leer tension del peltier
+	;mov		r23,		Reg_Temporal			; guardo la tension
+	rcall	TRADUCIR_TERMOCUPLA
 
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
-	rcall 	READ_ADC 						; leer tension del peltier
-	mov		r24,		Reg_Temporal					; guardo la tension
+	rcall 	READ_ADC 								; leer tension del peltier
+	mov		r24,		Reg_Temporal				; guardo la tension
 
 	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
-	rcall 	READ_ADC 						; leer tension del termistor
-	mov		r25,		Reg_Temporal					; guardo la tension
+	rcall 	READ_ADC 								; leer tension del termistor
+	;mov		r25,		Reg_Temporal				; guardo la tension
 	
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
@@ -189,7 +184,7 @@ TRANSMITIR_DATOS:
 		
 	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 				; tipo de dato a mandar
 	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r23
+	lds 	Reg_Temporal,		Temp_Ambiente
 	rcall 	USART_Transmit
 
 
@@ -201,7 +196,7 @@ TRANSMITIR_DATOS:
 
 	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
 	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r25
+	lds 	Reg_Temporal,		Temp_Peltier
 	rcall 	USART_Transmit
 	
 	ret
@@ -263,7 +258,7 @@ STANDBY:
 ;Change Mode
 ;Invierte el bit 0 en el registro Modo_Operacion que es el modo de funcionamiento
 CHANGE_MODE:								;Atiende la interrupcion de cambio de modo
-	inc 	Modo_Operacion								;Invierte el ultimo bit
+	;inc 	Modo_Operacion								;Invierte el ultimo bit
 	rjmp	LOOP
 
 ;-------------------------------------------------------------------------------------
@@ -316,10 +311,10 @@ WAIT_ADC:
 	sbi	_SFR_IO_ADDR(ADCSRA), 4
 
 	in 		Reg_Temporal, 		_SFR_IO_ADDR(ADCL) 	;
-	in 		Temp_Ambiente, 		_SFR_IO_ADDR(ADCH) 	;
-	lsr 	Temp_Ambiente
+	in 		17, 		_SFR_IO_ADDR(ADCH) 	;
+	lsr 	17
 	ror 	Reg_Temporal
-	lsr 	Temp_Ambiente
+	lsr 	17
 	ror 	Reg_Temporal
 
 	ret
@@ -337,16 +332,18 @@ PWM_Init:
 ;Traducir termocupla
 ;Convierte el valor recibido por parametro en su temperatura equivalente
 ;entrada: Reg_Temporal: valor leido por el ADC
-;salida : Reg_Temporal: temperatura traducida
 
 TRADUCIR_TERMOCUPLA:
-	ldi 	   	ZH, 					hi8(pm(TERMOCUPLA))
-	ldi 	   	ZL, 					lo8(pm(TERMOCUPLA))
-LOOP_TERMOCUPLA:
-	lpm			Reg_Temporal,			Z+
-	
+	sts 	Temp_Ambiente,  			Reg_Temporal
+	ret
 
-	;ldi 	Reg_Temporal,				35
+;-------------------------------------------------------------------------------------
+;Traducir peltier
+;Convierte el valor recibido por parametro en su temperatura equivalente
+;entrada: Reg_Temporal: valor leido por el ADC
+
+TRADUCIR_PELTIER:
+	sts 	Temp_Peltier,  				Reg_Temporal
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -364,16 +361,11 @@ COLD_MODE:
 	ldi 	Reg_Temporal,				0 			;0 es el modo frio
 	ret
 
-;Tablas de conversion 
-;Formato: [(Tension medida, temperatura),...]  
-TERMOCUPLA: .byte	0x0,0x0,0X20,0x0,0xFF,100 ;0XFF matchea al maximo
-PELTIER: 	.byte	0x0,0x0,0X20,0x0,0XFF,100 ;0xFF matchea al maximo
-PRUEBA:		.ascii  "Hola Mundo"
-
-
 .section .eeprom
 .org  0x0100
-;Leido,Temperatura*2
+
+;Tablas de conversion 
+;Formato: [(Tension medida, Temperatura*2),...]  
 .byte 76,112
 .byte 77,96
 .byte 78,82
