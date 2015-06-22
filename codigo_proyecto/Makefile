@@ -17,6 +17,9 @@ $(EXE).elf: $(EXE).S
 send:	$(EXE).hex $(EXE).eep
 	sudo avrdude -c usbtiny -p m8 -U flash:w:$(EXE).hex:i
 
+send_table:	$(EXE).eep
+	sudo avrdude -c usbtiny -p m8 -U flash:w:$(EXE).hex:i -U eeprom:w:$(EXE).eep:i
+	
 $(EXE).hex: $(EXE).elf
 	avr-objcopy -O ihex $(EXE).elf $(EXE).hex
 

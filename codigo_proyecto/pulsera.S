@@ -6,17 +6,18 @@
 Temp_Ambiente: 	.byte 	0
 Temp_Peltier: .byte 0
 Modo_Operacion: .byte 0
+PWM: .byte	0
+POS: .byte	0
 
 .section .text
 .org 0x0
 .global main
-	rjmp	main
+rjmp	main
 
 #define low(x)   lo8(x)
 #define high(x)  hi8(x)
 
-#define	PWM_inicial 100
-.comm PWM	1
+#define	PWM_inicial 90
 
 ;Regs:
 ;r16: Temporal, pasaje de parametro y de retorno
@@ -38,7 +39,6 @@ Modo_Operacion: .byte 0
 main:
 
 STACK_Init:
-
 	ldi 	Reg_Temporal, 			low(RAMEND)
 	out 	_SFR_IO_ADDR(SPL), 		Reg_Temporal
 	ldi		Reg_Temporal, 			high(RAMEND)
@@ -47,8 +47,6 @@ STACK_Init:
 	rcall	PWM_Init
 	rcall 	PUENTE_H_Init
 	rcall	USART_Init
-	
-	;rcall 	EEPROM_Init
 
 	rcall 	READ_ADC 							;leer temperatura ambiente
 	rcall	TRADUCIR_TERMOCUPLA					;obtengo la temperatura
@@ -139,8 +137,11 @@ LEER_EEPROM:
 	rjmp 	LEER_EEPROM
 	ldi		r16, 0						; 	carga la direccion de memoria a ser leida
 	out		_SFR_IO_ADDR(EEARH), r16	
-	ldi		r16, 0x50
+	;ldi		r16, 120
+	lds		r16, POS
 	out		_SFR_IO_ADDR(EEARL), r16
+	inc		r16
+	sts		POS, r16
 	sbi		_SFR_IO_ADDR(EECR), EERE	;	habilita el modo lectura
 	in		r25, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
 	ret
@@ -174,7 +175,7 @@ TRANSMITIR_DATOS:
 
 	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
 	rcall 	READ_ADC 								; leer tension del termistor
-	;mov		r25,		Reg_Temporal				; guardo la tension
+	mov		r25,		Reg_Temporal				; guardo la tension
 	
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
@@ -193,10 +194,11 @@ TRANSMITIR_DATOS:
 	mov 	Reg_Temporal,		r24
 	rcall 	USART_Transmit
 
-
+	
 	ldi 	Reg_Temporal,		Dato_Tempe_Peltier 				; tipo de dato a mandar
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Temp_Peltier
+	mov		Reg_Temporal,		r25
 	rcall 	USART_Transmit
 	
 	ret
@@ -213,7 +215,6 @@ SET_PWM:
 	ldi		r26, 	5
 	sub		r29,	r26
 	
-	ldi		r29, 65
 	out 	_SFR_IO_ADDR(OCR2),r29
 	sts		PWM, r29
 	ret
@@ -362,62 +363,53 @@ COLD_MODE:
 	ret
 
 .section .eeprom
-.org  0x0100
+.org  0x0000
 
 ;Tablas de conversion 
 ;Formato: [(Tension medida, Temperatura*2),...]  
-.byte 76,112
-.byte 77,96
-.byte 78,82
-.byte 82,80
-.byte 84,78
-.byte 87,76
-.byte 90,74
-.byte 92,72
-.byte 96,70
-.byte 98,66
-.byte 100,64
-.byte 105,58
-.byte 107,57
-.byte 109,56
-.byte 111,55
-.byte 113,54
-.byte 115,53
-.byte 117,52
-.byte 121,51
-.byte 125,50
-.byte 127,49
-.byte 129,48
-.byte 131,47
-.byte 134,46
-.byte 136,45
-.byte 139,44
-.byte 143,43
-.byte 147,42
-.byte 150,41
-.byte 153,40
-.byte 154,39
-.byte 156,38
-.byte 157,37
-.byte 159,36
-.byte 160,35
-.byte 161,34
-.byte 162,33
-.byte 163,32
-.byte 164,31
-.byte 166,30
-.byte 167,26
-.byte 168,25
-.byte 169,24
-.byte 170,22
-.byte 171,20
-.byte 172,19
-.byte 173,18
-.byte 174,17
-.byte 175,16
-.byte 177,15
-.byte 178,14
-.byte 183,13
-.byte 188,12
+.byte	214	,	14
+.byte	211	,	16
+.byte	209	,	18
+.byte	207	,	20
+.byte	205	,	22
+.byte	204	,	24
+.byte	203	,	26
+.byte	202	,	28
+.byte	200	,	30
+.byte	198	,	32
+.byte	196	,	34
+.byte	194	,	36
+.byte	192	,	38
+.byte	191	,	40
+.byte	182	,	42
+.byte	179	,	44
+.byte	176	,	46
+.byte	173	,	48
+.byte	170	,	50
+.byte	167	,	52
+.byte	170	,	54
+.byte	167	,	56
+.byte	164	,	58
+.byte	161	,	60
+.byte	158	,	62
+.byte	156	,	64
+.byte	153	,	66
+.byte	152	,	68
+.byte	151	,	70
+.byte	147	,	72
+.byte	145	,	74
+.byte	143	,	76
+.byte	141	,	78
+.byte	140	,	80
+
+;Formato: [Tension minima, Dif_Temperatura*2]
+.org	50
+.byte	51	,	1
+.byte	100	,	2
+.byte	117	,	4
+.byte	125	,	6
+.byte	195	,	7
+.byte	200	,	9
+
 
 .end
