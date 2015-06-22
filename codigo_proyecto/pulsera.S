@@ -164,15 +164,17 @@ TRANSMITIR_DATOS:
 	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
 	rcall 	READ_ADC 								; leer tension del peltier
 	rcall	TRADUCIR_TERMISTOR
-	sts 	Reg_Temporal, Temp_Ambiente
+	sts 	Temp_Ambiente,  Reg_Temporal
+
+	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura disipador
+	rcall 	READ_ADC 								; leer tension del termistor
+	rcall	TRADUCIR_TERMISTOR
+	sts 	Temp_Disipador, Reg_Temporal
 
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
 	rcall 	READ_ADC 								; leer tension del peltier
-	mov		r24,		Reg_Temporal				; guardo la tension
+	rcall 	TRADUCIR_PELTIER
 
-	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura peltier
-	rcall 	READ_ADC 								; leer tension del termistor
-	mov		r25,		Reg_Temporal				; guardo la tension
 	
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
@@ -378,12 +380,12 @@ END_PELTIER:
 	
 CALCULO_CALOR:
 	add  	Reg_Temporal,r17
-	sts 	Reg_Temporal,Temp_Peltier
+	sts 	Temp_Peltier,Reg_Temporal
 	ret
 
 CALCULO_FRIO:
 	sub  	Reg_Temporal,r17
-	sts 	Reg_Temporal,Temp_Peltier
+	sts 	Temp_Peltier,Reg_Temporal
 	ret
 ;-------------------------------------------------------------------------------------
 ;Get mode
