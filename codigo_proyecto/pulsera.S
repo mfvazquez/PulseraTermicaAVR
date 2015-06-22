@@ -4,6 +4,7 @@
 .org 0x000
 
 Temp_Ambiente: 	.byte 	0
+Temp_Disipador: .byte 0
 Temp_Peltier: .byte 0
 Modo_Operacion: .byte 0
 PWM: .byte	0
@@ -136,14 +137,10 @@ EEPROM_Init:
 LEER_EEPROM:
 	sbic	_SFR_IO_ADDR(EECR), EEWE	; 	espera hasta que la ultima escritura este terminada
 	rjmp 	LEER_EEPROM
-	out		_SFR_IO_ADDR(EEARH), r17	;	r17 elige la tala	
-	;ldi		r16, 120
-	lds		r16, POS
+	out		_SFR_IO_ADDR(EEARH), r17	;	r17 elige la tabla	
 	out		_SFR_IO_ADDR(EEARL), r16	;	r16 el campo
-	inc		r16
-	sts		POS, r16
 	sbi		_SFR_IO_ADDR(EECR), EERE	;	habilita el modo lectura
-	in		r16, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
+	in		r25, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -166,8 +163,8 @@ MODO_CALOR:
 TRANSMITIR_DATOS:
 	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
 	rcall 	READ_ADC 								; leer tension del peltier
-	;mov		r23,		Reg_Temporal			; guardo la tension
 	rcall	TRADUCIR_TERMISTOR
+	sts 	Reg_Temporal, Temp_Ambiente
 
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
 	rcall 	READ_ADC 								; leer tension del peltier
@@ -335,7 +332,21 @@ PWM_Init:
 ;entrada: Reg_Temporal: valor leido por el ADC
 
 TRADUCIR_TERMISTOR:
-	sts 	Temp_Ambiente,  			Reg_Temporal
+	mov		r18,		Reg_Temporal
+	ldi 	r17,		0 				;tabla termistor
+	ldi 	Reg_Temporal,	0 			;indice
+LOOP_BUSQUEDA_TERM:
+	rcall	LEER_EEPROM
+	cp 		r18,r25						;leido vs valor tabla
+	brge	END_TERMISTOR
+	inc 	Reg_Temporal
+	inc 	Reg_Temporal
+	rjmp	LOOP_BUSQUEDA_TERM
+
+END_TERMISTOR:
+	inc 	Reg_Temporal
+	rcall	LEER_EEPROM
+	mov 	Reg_Temporal,  			r25
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -344,9 +355,36 @@ TRADUCIR_TERMISTOR:
 ;entrada: Reg_Temporal: valor leido por el ADC
 
 TRADUCIR_PELTIER:
-	sts 	Temp_Peltier,  				Reg_Temporal
+	mov		r18,		Reg_Temporal
+	ldi 	r17,		0 				;tabla termistor
+	ldi 	Reg_Temporal,	0 			;indice
+LOOP_BUSQUEDA_PELT:
+	rcall	LEER_EEPROM
+	cp 		r18,r25						;leido vs valor tabla
+	brlo	END_PELTIER
+	inc 	Reg_Temporal
+	inc 	Reg_Temporal
+	rjmp	LOOP_BUSQUEDA_PELT
+
+END_PELTIER:
+	inc 	Reg_Temporal
+	rcall	LEER_EEPROM
+	mov 	Reg_Temporal,  			r25
+	lds		r17,					Temp_Disipador
+	lds		r18,					Modo_Operacion
+	sbrc	r18,0
+	rjmp 	CALCULO_CALOR
+	rjmp	CALCULO_FRIO
+	
+CALCULO_CALOR:
+	add  	Reg_Temporal,r17
+	sts 	Reg_Temporal,Temp_Peltier
 	ret
 
+CALCULO_FRIO:
+	sub  	Reg_Temporal,r17
+	sts 	Reg_Temporal,Temp_Peltier
+	ret
 ;-------------------------------------------------------------------------------------
 ;Get mode
 ;Devuelve el valor del modo en el cual se ejecuta para la temperatura Reg_Temporal
