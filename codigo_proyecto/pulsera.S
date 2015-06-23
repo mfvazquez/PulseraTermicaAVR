@@ -44,11 +44,13 @@ rjmp	main
 #define Dato_max	'M'
 #define Dato_min	'N'
 
-#define Incremento_Pulso	8
-#define Incremento_Regulacion 2
-#define	PWM_inicial 95
+#define Incremento_Pulso_Calor	3
+#define Incremento_Pulso_Frio	10
+#define Incremento_Regulacion 1
+#define	PWM_inicial 100
 
-#define Eeprom_Inicio  0x64
+#define Eeprom_Inicio_Calor  0x64
+#define Eeprom_Inicio_Frio  0x84
 
 ;Saltea el vector de interrupción   
 .org 0x0020
@@ -104,7 +106,17 @@ REDUCIR_LOOP:
 ;-------------------------------------Funciones---------------------------------------
 RESET_PWM:
 	clr		r17								; 8 bits mas significativos de la direccion de la eeprom a leer
-	ldi		Reg_Temporal, Eeprom_Inicio
+	
+	lds		r31, Modo_Operacion
+	cpi		r31, 0
+	breq	TABLA_FRIO
+TABLA_CALOR:
+	ldi		Reg_Temporal, Eeprom_Inicio_Calor
+	rjmp	CARGAR_TABLA
+TABLA_FRIO:	
+	ldi		Reg_Temporal, Eeprom_Inicio_Frio
+	rjmp	CARGAR_TABLA
+CARGAR_TABLA:
 	inc		Reg_Temporal
 	inc		Reg_Temporal
 	sts		Iterador, Reg_Temporal
@@ -167,7 +179,6 @@ TRANSMITIR_DATOS:
 	rcall 	LEER_AMBIENTE
 	rcall 	LEER_DISIPADOR
 	rcall	LEER_PELTIER
-	rcall  TRADUCIR_PELTIER							; Calcula la temperatura del peltier
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
 	rcall 	USART_Transmit
@@ -196,10 +207,10 @@ TRANSMITIR_DATOS:
 	lds 	Reg_Temporal,		Temp_Peltier
 	rcall 	USART_Transmit
 	
-;	ldi 	Reg_Temporal,		Dato_PWM				; tipo de dato a mandar
-;	rcall 	USART_Transmit
-;	lds 	Reg_Temporal,		PWM
-;	rcall 	USART_Transmit
+	ldi 	Reg_Temporal,		Dato_PWM				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		PWM
+	rcall 	USART_Transmit
 	
 		
 ;	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
@@ -231,6 +242,7 @@ LEER_DISIPADOR:
 LEER_PELTIER:
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
 	rcall 	READ_ADC 								; leer tension del peltier
+	sts		Tension_Salida, Reg_Temporal
 	rcall 	TRADUCIR_PELTIER
 	ret
 
@@ -254,13 +266,17 @@ SET_PWM:
 	cp		r29, r17
 	brlo	AUMENTAR
 	
-;	cp		r29, r18
-;	brlo	APLICAR_CAMBIO	
+	cp		r29, r18
+	brlo	APLICAR_CAMBIO	
 
-;DISMINUIR:	
-;	add		r30,	r26
+DISMINUIR:	
+	cpi		r30, 100
+	breq 	APLICAR_CAMBIO
+	add		r30,	r26
 	rjmp	APLICAR_CAMBIO
 AUMENTAR:
+	cpi		r30, 0
+	breq 	APLICAR_CAMBIO
 	sub		r30,	r26
 APLICAR_CAMBIO:
 	sts		PWM, r30
@@ -283,9 +299,16 @@ AUMENTAR_PULSO:
 	rcall	LEER_EEPROM
 	sts		Tension_max, r25
 	
-	ldi		r26, Incremento_Pulso
+	lds		r31, Modo_Operacion
+	cpi		r31, 0
+	breq	AUMENTO_FRIO
+AUMENTO_CALOR:
+	ldi		r26, Incremento_Pulso_Calor
+	rcall AUMENTAR
+	ret
+AUMENTO_FRIO:
+	ldi		r26, Incremento_Pulso_Frio
 	rcall	AUMENTAR
-	
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -442,8 +465,16 @@ FIN_TABLA:
 
 TRADUCIR_PELTIER:
 	lds		r18, Tension_Salida
-	ldi 	r17, 0 							;tabla termistor
-	ldi 	Reg_Temporal, Eeprom_Inicio 			;indice
+	ldi 	r17, 0 							;tabla termistor	
+	lds		r31, Modo_Operacion
+	cpi		r31, 0
+	breq	TABLA_FRIO_PELTIER
+TABLA_CALOR_PELTIER:
+	ldi		Reg_Temporal, Eeprom_Inicio_Calor
+	rjmp	LOOP_BUSQUEDA_TERM_PELTIER
+TABLA_FRIO_PELTIER:	
+	ldi		Reg_Temporal, Eeprom_Inicio_Frio
+	rjmp	LOOP_BUSQUEDA_TERM_PELTIER
 LOOP_BUSQUEDA_TERM_PELTIER:
 	rcall	LEER_EEPROM
 	cpi		r25, 0xFF
@@ -560,22 +591,36 @@ SET_COLD:
 .byte	140	,	80
 .byte	0, 0 ;FIN DE TABLA
 
+; TABLA PARA MODO CALOR
 ;Formato: [Tension minima, Dif_Temperatura*2]
 .org	0x0064
 .byte	0	,	0
-.byte	54	,	2
-.byte	75	,	4
-.byte	100	,	6
-.byte	130 ,	8
-.byte	140	,	10
-.byte	150	,	14
-.byte	160 ,	16
-.byte	180 ,	18
-.byte	190	,	20
-.byte	200	,	22
-.byte	205	,	26
-.byte	210	,	30
-.byte	
+.byte	20  ,	0
+.byte	40	,	6
+.byte	50	,	8
+.byte	60	,	10
+.byte	80	,	12
+.byte	90  ,	16
+.byte	100 ,	24
+.byte	110	,	36
+.byte	0xFF, 0xFF ;FIN DE TABLA
+
+; TABLA PARA MODO FRIO
+;Formato: [Tension minima, Dif_Temperatura*2]
+.org	0x0080
+.byte	0	,	0
+.byte	1	,	0
+.byte	10  ,	1
+.byte	30	,	2
+.byte	40	,	4
+.byte	45	,	6
+.byte	50	,	8
+.byte	60	,	10
+.byte	80	,	14
+.byte	90  ,	16
+.byte	100 ,	18
+.byte	110	,	20
+.byte	115	,	22
 .byte	0xFF, 0xFF ;FIN DE TABLA
 
 .end
