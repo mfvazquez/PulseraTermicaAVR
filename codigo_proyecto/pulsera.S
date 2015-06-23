@@ -25,8 +25,6 @@ rjmp	main
 #define low(x)   lo8(x)
 #define high(x)  hi8(x)
 
-#define	PWM_inicial 100
-
 ;Regs:
 ;r16: Temporal, pasaje de parametro y de retorno
 #define Reg_Temporal r16
@@ -45,6 +43,10 @@ rjmp	main
 #define Dato_PWM  'W'
 #define Dato_max	'M'
 #define Dato_min	'N'
+
+#define Incremento_Pulso	8
+#define Incremento_Regulacion 2
+#define	PWM_inicial 95
 
 #define Eeprom_Inicio  0x64
 
@@ -121,9 +123,9 @@ RESET_PWM:
 ;-------------------------------------------------------------------------------------
 ; espera r27 * 100mseg
 ESPERA:
+	rcall	TRANSMITIR_DATOS
 	rcall	SET_PWM
 	rcall 	DEMORA
-	rcall	TRANSMITIR_DATOS
 	dec 	r27
 	clr 	Reg_Temporal
 	cpse	r27, Reg_Temporal
@@ -206,21 +208,21 @@ TRANSMITIR_DATOS:
 	lds 	Reg_Temporal,		Temp_Peltier
 	rcall 	USART_Transmit
 	
-	ldi 	Reg_Temporal,		Dato_PWM				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	lds 	Reg_Temporal,		PWM
-	rcall 	USART_Transmit
+;	ldi 	Reg_Temporal,		Dato_PWM				; tipo de dato a mandar
+;	rcall 	USART_Transmit
+;	lds 	Reg_Temporal,		PWM
+;	rcall 	USART_Transmit
 	
 		
-	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	lds 	Reg_Temporal,		Tension_min
-	rcall 	USART_Transmit
+;	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
+;	rcall 	USART_Transmit
+;	lds 	Reg_Temporal,		Tension_min
+;	rcall 	USART_Transmit
 
-	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	lds 	Reg_Temporal,		Tension_max
-	rcall 	USART_Transmit
+;	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
+;	rcall 	USART_Transmit
+;	lds 	Reg_Temporal,		Tension_max
+;	rcall 	USART_Transmit
 	
 	ret
 
@@ -233,15 +235,14 @@ TRANSMITIR_DATOS:
 SET_PWM:
 	lds		r30, PWM
 	lds		Reg_Temporal, Modo_Standby
+
 	cpi		Reg_Temporal, 1
 	breq	APLICAR_CAMBIO					;Si esta en modo standby no realiza cambios
 	
-	
 	lds		r29, Tension_Salida	
-
 	lds		r17, Tension_min
-	lds		r18, Tension_max	
-	ldi		r26, 	2				;valor a ser restado o sumado
+	lds		r18, Tension_max
+	ldi		r26, 	Incremento_Regulacion				;valor a ser restado o sumado
 	
 	cp		r29, r17
 	brlo	AUMENTAR
@@ -275,7 +276,7 @@ AUMENTAR_PULSO:
 	rcall	LEER_EEPROM
 	sts		Tension_max, r25
 	
-	ldi		r26, 3
+	ldi		r26, Incremento_Pulso
 	rcall	AUMENTAR
 	
 	ret
@@ -450,31 +451,21 @@ END_PELTIER:
 	rcall 	LEER_EEPROM
 	lds		r17, Temp_Disipador
 	lds		r18, Modo_Operacion
-	sbrc	r18,0
-	
-	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r17
-	rcall 	USART_Transmit
 
-	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
-	rcall 	USART_Transmit
-	mov 	Reg_Temporal,		r25
-	rcall 	USART_Transmit
-	
 	mov		Reg_Temporal, r25	
 
-	
+	sbrc	r18,0
 	rjmp 	CALCULO_CALOR
 	rjmp	CALCULO_FRIO
 	
 CALCULO_CALOR:
-	add  	Reg_Temporal,r17
+	add  	Reg_Temporal, r17
 	sts 	Temp_Peltier, Reg_Temporal
 	ret
 
 CALCULO_FRIO:
-	sub  	Reg_Temporal,r17
+	sub  	r17, Reg_Temporal
+	mov		Reg_Temporal, r17
 	sts 	Temp_Peltier, Reg_Temporal
 	ret
 	
@@ -568,17 +559,16 @@ SET_COLD:
 .byte	54	,	2
 .byte	75	,	4
 .byte	100	,	6
-.byte	105 ,	8
-.byte	117	,	10
-.byte	125	,	14
-.byte	135 ,	16
-.byte	142 ,	18
-.byte	153	,	20
-.byte	167	,	22
-.byte	180	,	24
-.byte	195	,	26
-.byte	200	,	28
+.byte	130 ,	8
+.byte	140	,	10
+.byte	150	,	14
+.byte	160 ,	16
+.byte	180 ,	18
+.byte	190	,	20
+.byte	200	,	22
+.byte	205	,	26
 .byte	210	,	30
+.byte	
 .byte	0xFF, 0xFF ;FIN DE TABLA
 
 .end

@@ -9,20 +9,13 @@ import matplotlib.pyplot as plt
 
 TAMANIO_TEMPERATURA = 1
 
-A = -33.728
-B = 65.913
-
-VOLT = 2.56 / 255
-A = -8.0468
-B = 33.826
-
 
 def traducir_voltaje(leido):
-    return ord(leido) * VOLT
+    return ord(leido)
 
 
 def traducir_temperatura(leido):
-    return traducir_voltaje(leido)  # * A + B
+    return ord(leido)/2
 
 
 def devolver_tiempo(leido):
@@ -30,10 +23,14 @@ def devolver_tiempo(leido):
     return ord(leido)
 
 
-DATA_TYPE = {"A": ("Temperatura Ambiente", TAMANIO_TEMPERATURA, traducir_temperatura),
-             "P": ("Tension Peltier", TAMANIO_TEMPERATURA, traducir_temperatura),
-             "I": ("Numero Ciclo", 1, devolver_tiempo),
-             "T": ("Temperatura Peltier", TAMANIO_TEMPERATURA, traducir_temperatura)}
+DATA_TYPE = {"A":("Temperatura Ambiente",TAMANIO_TEMPERATURA,traducir_temperatura),
+		"P":("Tension Peltier",TAMANIO_TEMPERATURA,traducir_voltaje),
+		"I":("\nNumero Ciclo",1,ord), 
+		"T":("Temperatura Disipador",TAMANIO_TEMPERATURA,traducir_temperatura),
+		"X":("Temperatura Peltier",TAMANIO_TEMPERATURA,traducir_temperatura),
+		"W":("PWM",TAMANIO_TEMPERATURA,traducir_voltaje),
+		"M":("Tension Maxima",TAMANIO_TEMPERATURA,traducir_voltaje),
+		"N":("Tension Minima",TAMANIO_TEMPERATURA,traducir_voltaje),}
 
 
 def main():
@@ -85,7 +82,7 @@ def main():
                 continue
 
         print data_type, " : ", f(read_data)
-        if data_type == DATA_TYPE["P"][0]:
+        if data_type == DATA_TYPE["X"][0]:
             temperaturas_peltier.append(f(read_data))
             tiempo_temperatura_peltier.append(tiempo)
 
@@ -117,7 +114,7 @@ def main():
         plt.plot(tiempo_temperatura_peltier, temperaturas_peltier, linestyle='-', color='b',
                  label='Temperatura',
                  marker="o")
-        plt.axis([tiempo_temperatura_peltier[-1] - 5.6, tiempo_temperatura_peltier[-1] + 0.1, -20, 100])
+        plt.axis([tiempo_temperatura_peltier[-1] - 5.6, tiempo_temperatura_peltier[-1] + 0.1, 0, 40])
         plt.xlabel('Tiempo [s]')
         plt.ylabel('Temperatura [C]')
         plt.title('Temperatura Peltier [{0:03f}]'.format(temperaturas_peltier[-1]))
@@ -128,7 +125,7 @@ def main():
         plt.plot(tiempo_temperatura_ambiente, temperaturas_ambiente, linestyle='-', color='r',
                  label='Temperatura',
                  marker="o")
-        plt.axis([tiempo_temperatura_ambiente[-1] - 5.6, tiempo_temperatura_ambiente[-1] + 0.1, -20, 100])
+        plt.axis([tiempo_temperatura_ambiente[-1] - 5.6, tiempo_temperatura_ambiente[-1] + 0.1, 0, 40])
         plt.xlabel('Tiempo [s]')
         plt.ylabel('Temperatura [C]')
         plt.title('Temperatura Ambiente [{0:03f}]'.format(temperaturas_ambiente[-1]))
@@ -141,7 +138,7 @@ def main():
         plt.plot(tiempo_temperatura_peltier, temperaturas_peltier, linestyle='-', color='b',
                  label='Temperatura',
                  marker="1")
-        plt.axis([tiempo_temperatura_peltier[-1] - 5.6, tiempo_temperatura_peltier[-1] + 0.1, -20, 100])
+        plt.axis([tiempo_temperatura_peltier[-1] - 5.6, tiempo_temperatura_peltier[-1] + 0.1, 0, 40])
         plt.xlabel('Tiempo [s]')
         plt.ylabel('Temperatura [C]')
         plt.title('Comparacion Temperaturas')
@@ -156,7 +153,7 @@ def main():
         plt.plot(iteracion_temperatura_peltier, temperaturas_peltier_iteracion, linestyle='-', color='b',
                  label='Temperatura',
                  marker="1")
-        plt.axis([0, 6, -20, 100])
+        plt.axis([0, 6, 0, 40])
         plt.xlabel('Iteracion')
         plt.ylabel('Temperatura [C]')
         plt.title('Temperaturas durante iteracion')
