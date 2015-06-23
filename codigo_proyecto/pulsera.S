@@ -164,21 +164,9 @@ MODO_CALOR:
 ;-------------------------------------------------------------------------------------
 
 TRANSMITIR_DATOS:
-	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
-	rcall 	READ_ADC 								; leer tension del peltier
-	rcall	TRADUCIR_TERMISTOR
-	sts 	Temp_Ambiente, Reg_Temporal
-
-
-	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
-	rcall 	READ_ADC 								; leer tension del peltier
-	sts		Tension_Salida,		Reg_Temporal				; guardo la tension
-
-	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura disipador
-	rcall 	READ_ADC 								; leer tension del termistor
-	rcall	TRADUCIR_TERMISTOR
-	sts		Temp_Disipador,		Reg_Temporal		; guardo la tension
-	
+	rcall 	LEER_AMBIENTE
+	rcall 	LEER_DISIPADOR
+	rcall	LEER_PELTIER
 	rcall  TRADUCIR_PELTIER							; Calcula la temperatura del peltier
 	
 	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
@@ -225,7 +213,26 @@ TRANSMITIR_DATOS:
 ;	rcall 	USART_Transmit
 	
 	ret
+;-------------------------------------------------------------------------------------
+LEER_AMBIENTE:
+	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
+	rcall 	READ_ADC 								; leer tension del peltier
+	rcall	TRADUCIR_TERMISTOR
+	sts 	Temp_Ambiente,  Reg_Temporal
+	ret
 
+LEER_DISIPADOR:
+	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura disipador
+	rcall 	READ_ADC 								; leer tension del termistor
+	rcall	TRADUCIR_TERMISTOR
+	sts 	Temp_Disipador, Reg_Temporal
+	ret
+
+LEER_PELTIER:
+	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
+	rcall 	READ_ADC 								; leer tension del peltier
+	rcall 	TRADUCIR_PELTIER
+	ret
 
 ;-------------------------------------------------------------------------------------
 ;Set PWM
