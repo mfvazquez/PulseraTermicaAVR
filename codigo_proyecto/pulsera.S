@@ -67,8 +67,9 @@ STACK_Init:
 	rcall	USART_Init
 
 LOOP:
-	clr 	Contador		 					;Iteraciones, se usa para saber la diferencia que se debe obtener
-	
+	;Iteraciones, se usa para saber la diferencia que se debe obtener
+	clr 	Contador		 					
+
 	rcall	GET_MODE							;obtengo el modo de operacion
 
 	ldi 	r29,				PWM_inicial		;PWM
@@ -316,25 +317,26 @@ AUMENTO_FRIO:
 ;-------------------------------------------------------------------------------------
 ;Espera durante 100mseg
 DEMORA:
-	ldi 	Reg_Temporal,	0xCF					; Valores de los que empieza a contar					
-	out 	_SFR_IO_ADDR(TCNT1H), Reg_Temporal
-	ldi 	Reg_Temporal, 	0x2B
-	out 	_SFR_IO_ADDR(TCNT1L), Reg_Temporal
-	ldi		Reg_Temporal, 4						; 0000 0100 habilita poner en 1 
+	ldi 	Reg_Temporal,		0xCF			; Valores de los que empieza a contar					
+	out 	_SFR_IO_ADDR(TCNT1H),Reg_Temporal
+	ldi 	Reg_Temporal, 		0x2B
+	out 	_SFR_IO_ADDR(TCNT1L),Reg_Temporal
+	ldi		Reg_Temporal, 		4				; 0000 0100 habilita poner en 1 
 	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
-	out 	_SFR_IO_ADDR(TIMSK), Reg_Temporal	; el bit 3 de TIRF cuando haya overflow
-	ldi 	Reg_Temporal, 0b00000011				; velocidad: clk/64
-	out		_SFR_IO_ADDR(TCCR1B), Reg_Temporal
+	out 	_SFR_IO_ADDR(TIMSK),Reg_Temporal	; el bit 3 de TIRF cuando haya overflow
+	ldi 	Reg_Temporal, 		0b00000011		; velocidad: clk/64
+	out		_SFR_IO_ADDR(TCCR1B),Reg_Temporal
+
 DEMORA_LOOP:
-	in 		Reg_Temporal, _SFR_IO_ADDR(TIFR)
-	sbrs	Reg_Temporal, 2
+	in 		Reg_Temporal, 		_SFR_IO_ADDR(TIFR)
+	sbrs	Reg_Temporal, 		2
 	rjmp 	DEMORA_LOOP
 	
-	ldi 	Reg_Temporal, 1
+	ldi 	Reg_Temporal, 		1
 	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
-	clr 	Reg_Temporal							; finalizo contador
+	clr 	Reg_Temporal						; finalizo contador
 	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
-	out		_SFR_IO_ADDR(TCCR1B), Reg_Temporal
+	out		_SFR_IO_ADDR(TCCR1B),Reg_Temporal
 		
 	ret
 	
@@ -343,23 +345,16 @@ DEMORA_LOOP:
 ;Standby
 ;Espera durante 10 segundos
 STANDBY:
-	ldi	Reg_Temporal, 1
-	sts	Modo_Standby, Reg_Temporal
-	ldi 	r29 , 255							;PWM
-	sts		PWM, r29
+	ldi		Reg_Temporal, 		1
+	sts		Modo_Standby, 		Reg_Temporal
+	ldi 	r29, 				255				;PWM
+	sts		PWM, 				r29
 	rcall 	SET_PWM
-	ldi r27, 100
-	rcall ESPERA
-	clr	Reg_Temporal
-	sts	Modo_Standby, Reg_Temporal
+	ldi 	r27, 				100
+	rcall	ESPERA
+	clr		Reg_Temporal
+	sts		Modo_Standby, 		Reg_Temporal
 	ret
-
-;-------------------------------------------------------------------------------------
-;Change Mode
-;Invierte el bit 0 en el registro Modo_Operacion que es el modo de funcionamiento
-CHANGE_MODE:								;Atiende la interrupcion de cambio de modo
-	;inc 	Modo_Operacion								;Invierte el ultimo bit
-	rjmp	LOOP
 
 ;-------------------------------------------------------------------------------------
 ;Transmit
@@ -367,7 +362,7 @@ CHANGE_MODE:								;Atiende la interrupcion de cambio de modo
 ;Reg_Temporal: valor a transmitir
 
 USART_Transmit:
-	sbis 	_SFR_IO_ADDR(UCSRA), UDRE 		;Espero a que se libere el UDRE
+	sbis 	_SFR_IO_ADDR(UCSRA),UDRE 			;Espero a que se libere el UDRE
 	rjmp 	USART_Transmit
 
 	out 	_SFR_IO_ADDR(UDR),	Reg_Temporal
@@ -378,14 +373,15 @@ USART_Transmit:
 ;Inicializa el USART para poder enviar datos
 
 USART_Init:
-	ldi 	Reg_Temporal, 				(1<<TXEN) 	;enable
-	out 	_SFR_IO_ADDR(UCSRB),	Reg_Temporal
+	ldi 	Reg_Temporal, 		(1<<TXEN) 	;enable
+	out 	_SFR_IO_ADDR(UCSRB),Reg_Temporal
 
-	ldi 	Reg_Temporal, 	(1<<URSEL)|(3<<UCSZ0)	;8bits, 1bit de stop, sin bit de paridad
-	out 	_SFR_IO_ADDR(UCSRC),	Reg_Temporal
+	;8bits, 1bit de stop, sin bit de paridad
+	ldi 	Reg_Temporal, 		(1<<URSEL)|(3<<UCSZ0)
+	out 	_SFR_IO_ADDR(UCSRC),Reg_Temporal
 
-	ldi		Reg_Temporal,				0xC			;Baud 4800
-	out 	_SFR_IO_ADDR(UBRRL),	Reg_Temporal
+	ldi		Reg_Temporal,		0xC						;Baud 38400 (Clock de 8Mhz)
+	out 	_SFR_IO_ADDR(UBRRL),Reg_Temporal
 
 	ret
 
@@ -397,21 +393,21 @@ USART_Init:
 
 READ_ADC:
 
-	out 	_SFR_IO_ADDR(ADMUX), 	Reg_Temporal 	; 
-	ldi 	Reg_Temporal,				0b11001111	; 
-	out 	_SFR_IO_ADDR(ADCSRA), 	Reg_Temporal 	;
+	out 	_SFR_IO_ADDR(ADMUX),Reg_Temporal 	; 
+	ldi 	Reg_Temporal,		0b11001111		; 
+	out 	_SFR_IO_ADDR(ADCSRA),Reg_Temporal 	;
 
 WAIT_ADC:  
 	
-	in    	Reg_Temporal,		_SFR_IO_ADDR(ADCSRA)       ;READ THE STATUS
-	
-	sbrs	Reg_Temporal,4
+	in    	Reg_Temporal,		_SFR_IO_ADDR(ADCSRA)	
+	;Espera a que finalice la lectura
+	sbrs	Reg_Temporal,		4
 	rjmp	WAIT_ADC
 
-	sbi	_SFR_IO_ADDR(ADCSRA), 4
+	sbi		_SFR_IO_ADDR(ADCSRA),4
 
 	in 		Reg_Temporal, 		_SFR_IO_ADDR(ADCL) 	;
-	in 		r17, 		_SFR_IO_ADDR(ADCH) 	;
+	in 		r17, 				_SFR_IO_ADDR(ADCH) 	;
 	lsr 	r17
 	ror 	Reg_Temporal
 	lsr 	r17
@@ -423,9 +419,10 @@ WAIT_ADC:
 ;PWM init 
 ;Inicializa los puertos de salida del pwm
 PWM_Init:
-	sbi 	_SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
-	ldi 	Reg_Temporal,			0x71		;(01110001) Phase correct, no pre escalar, clear on match
-	out 	_SFR_IO_ADDR(TCCR2),	Reg_Temporal
+	sbi 	_SFR_IO_ADDR(DDRB),	3 				;(OC2) para salida
+	;(01110001) Phase correct, no pre escalar, clear on match
+	ldi 	Reg_Temporal,		0x71		
+	out 	_SFR_IO_ADDR(TCCR2),Reg_Temporal
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -434,14 +431,14 @@ PWM_Init:
 ;entrada: Reg_Temporal: valor leido por el ADC
 
 TRADUCIR_TERMISTOR:
-	mov		r18,		Reg_Temporal
-	ldi 	r17,		0 				;tabla termistor
-	ldi 	Reg_Temporal,	0 			;indice
+	mov		r18,				Reg_Temporal
+	ldi 	r17,				0				;tabla termistor
+	ldi 	Reg_Temporal,		0				;indice
 LOOP_BUSQUEDA_TERM:
 	rcall	LEER_EEPROM
-	cpi		r25, 0
+	cpi		r25, 				0
 	breq	FIN_TABLA
-	cp 		r18,r25						;leido vs valor tabla
+	cp 		r18,				r25				;leido vs valor tabla
 	brsh	END_TERMISTOR
 	inc 	Reg_Temporal
 	inc 	Reg_Temporal
@@ -450,12 +447,12 @@ LOOP_BUSQUEDA_TERM:
 END_TERMISTOR:
 	inc 	Reg_Temporal
 	rcall	LEER_EEPROM
-	mov 	Reg_Temporal,  			r25
+	mov 	Reg_Temporal,  		r25
 	ret
 
 FIN_TABLA:
-	dec	Reg_Temporal
-	dec	Reg_Temporal
+	dec		Reg_Temporal
+	dec		Reg_Temporal
 	rjmp	END_TERMISTOR
 
 ;-------------------------------------------------------------------------------------
@@ -465,22 +462,23 @@ FIN_TABLA:
 ;salida: Temp_Peltier
 
 TRADUCIR_PELTIER:
-	lds		r18, Tension_Salida
-	ldi 	r17, 0 							;tabla termistor	
-	lds		r31, Modo_Operacion
-	cpi		r31, 0
+	lds		r18, 				Tension_Salida
+	ldi 	r17, 				0 				;tabla termistor	
+	lds		r31, 				Modo_Operacion
+	cpi		r31, 				0
 	breq	TABLA_FRIO_PELTIER
 TABLA_CALOR_PELTIER:
-	ldi		Reg_Temporal, Eeprom_Inicio_Calor
+	ldi		Reg_Temporal, 		Eeprom_Inicio_Calor
 	rjmp	LOOP_BUSQUEDA_TERM_PELTIER
 TABLA_FRIO_PELTIER:	
-	ldi		Reg_Temporal, Eeprom_Inicio_Frio
+	ldi		Reg_Temporal, 		Eeprom_Inicio_Frio
 	rjmp	LOOP_BUSQUEDA_TERM_PELTIER
+
 LOOP_BUSQUEDA_TERM_PELTIER:
 	rcall	LEER_EEPROM
-	cpi		r25, 0xFF
+	cpi		r25, 				0xFF
 	breq	FIN_TABLA_PELTIER
-	cp 		r25,r18						; valor tabla vs leido
+	cp 		r25,				r18				; valor tabla vs leido
 	brsh	END_PELTIER
 	inc 	Reg_Temporal
 	inc 	Reg_Temporal
@@ -488,29 +486,29 @@ LOOP_BUSQUEDA_TERM_PELTIER:
 END_PELTIER:	
 	inc		Reg_Temporal
 	rcall 	LEER_EEPROM
-	lds		r17, Temp_Disipador
-	lds		r18, Modo_Operacion
+	lds		r17, 				Temp_Disipador
+	lds		r18, 				Modo_Operacion
 
-	mov		Reg_Temporal, r25	
+	mov		Reg_Temporal, 		r25	
 
-	sbrc	r18,0
+	sbrc	r18,				0
 	rjmp 	CALCULO_CALOR
 	rjmp	CALCULO_FRIO
 	
 CALCULO_CALOR:
-	add  	Reg_Temporal, r17
-	sts 	Temp_Peltier, Reg_Temporal
+	add  	Reg_Temporal, 		r17
+	sts 	Temp_Peltier, 		Reg_Temporal
 	ret
 
 CALCULO_FRIO:
-	sub  	r17, Reg_Temporal
-	mov		Reg_Temporal, r17
-	sts 	Temp_Peltier, Reg_Temporal
+	sub  	r17, 				Reg_Temporal
+	mov		Reg_Temporal, 		r17
+	sts 	Temp_Peltier, 		Reg_Temporal
 	ret
 	
 FIN_TABLA_PELTIER:
-	dec	Reg_Temporal
-	dec Reg_Temporal
+	dec		Reg_Temporal
+	dec 	Reg_Temporal
 	rjmp	END_PELTIER
 
 ;-------------------------------------------------------------------------------------
@@ -519,34 +517,34 @@ FIN_TABLA_PELTIER:
 ;Reg_Temporal: temperatura leida
 ;Reg_Temporal: valor leido devuelto
 GET_MODE:
-	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
+	ldi 	Reg_Temporal,		0b11000000		; canal 0 temperatura ambiente
 	rcall 	READ_ADC 	
-	rcall	TRADUCIR_TERMISTOR						;obtengo la temperatura
-	cpi 	Reg_Temporal,				50			;temperatura arbitraria para el modo calor
+	rcall	TRADUCIR_TERMISTOR					;obtengo la temperatura
+	cpi 	Reg_Temporal,		50				;temperatura arbitraria para el modo calor
 	brsh	COLD_MODE
 	
 HOT_MODE:
-	sbic	_SFR_IO_ADDR(PINB), 0					; Si el pin esta en 1 cambia de modo
+	sbic	_SFR_IO_ADDR(PINB), 0				; Si el pin esta en 1 cambia de modo
 	rjmp	SET_COLD
 
 SET_HOT:	
 	cbi _SFR_IO_ADDR(PORTB),	1 			
 	sbi _SFR_IO_ADDR(PORTB),	2 			
 
-	ldi 	Reg_Temporal,				1 			;1 es modo calor
+	ldi 	Reg_Temporal,		1 				;1 es modo calor
 	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
 
 	ret
 
 COLD_MODE:
-	sbic	_SFR_IO_ADDR(PINB), 0					; Si el pin esta en 1 cambia de modo
+	sbic	_SFR_IO_ADDR(PINB), 0				; Si el pin esta en 1 cambia de modo
 	rjmp	SET_HOT
 	
 SET_COLD:
 	sbi _SFR_IO_ADDR(PORTB),	1 			
 	cbi _SFR_IO_ADDR(PORTB),	2 
 	
-	ldi 	Reg_Temporal,				0 			;0 es el modo frio
+	ldi 	Reg_Temporal,		0 				;0 es el modo frio
 	sts  	Modo_Operacion,		Reg_Temporal	;Modo_Operacion modo de operacion inicial 
 
 	ret
