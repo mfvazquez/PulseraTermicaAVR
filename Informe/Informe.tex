@@ -21,10 +21,11 @@
 \usepackage{anysize}		%Permite modificar los margenes del documento
 \usepackage{abstract} % paquete para el resumen del articulo
 \usepackage{amssymb}
-
 \usepackage{courier}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{pdfpages}
+
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -136,6 +137,10 @@ variaciones de calor o frío a la muñeca del usuario para modificar
 la percepción térmica del cuerpo.}
 \end{abstract}
 
+\newpage
+\tableofcontents
+\newpage
+
 \section{Introducción}
 
 Su función es generar pulsos de frío o calor, de manera de generar una sensación de 
@@ -144,7 +149,8 @@ o muy baja respectivamente.
 Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso de intel 
 \emph{Make It Wearable} \cite{Make It Wearable}.
 
-\section{Especificaciones}
+\section{Objetivo}
+\subsection{Especificaciones}
 
 El dispositivo utilizará una celda Peltier para enviar pulsos de calor
 o frío. De forma que se logre una diferencia de temperatura de $0,4\, \unit{^oC/seg.}$
@@ -157,7 +163,7 @@ y analizar si deberá enviar o recibir calor.
 Finalmente deberá controlar que se cumpla el ciclo utilizando una termocupla
 para medir la temperatura corporal cercana a la placa de peltier.
 
-\subsection{Componentes}
+\subsubsection{Componentes}
 
 Deberá contar con los siguientes componentes.
 
@@ -261,13 +267,35 @@ a&a&a&a&a&a&a&a\\\hline
 0&0&0&0&0&0&0&0\\\hline
 \end{tabular}
 \end{center}
-\subsubsection{PWM}
-El PWM 
-\newpage
-\section{Codigo Proyecto}
-\lstinputlisting{../codigo_proyecto/pulsera.S}
+
+\section{Software}
+
+
+\section{Conclusiones}
+
+En este punto se hará una autocrítica acerca de los errores y aciertos logrados . También se podrán  hacer sugerencias sobre futuras mejoras en el proyecto y si consideran que otro grupo lo puede continuar. Incluir en este punto las diferencias, si las hubiere, entre las especificaciones originales previstas en el anteproyecto y las finalmente alcanzadas.
+
+\appendix 
 
 \newpage
+\section{Codigo Proyecto}
+\subsection{Pulsera.S}
+\lstinputlisting{../codigo_proyecto/pulsera.S}
+\newpage
+\lstset{language=Make}
+\subsection{Makefile}
+\lstinputlisting{../codigo_proyecto/Makefile}
+
+\section{Datasheets}
+
+\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
+
+\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
+
+\includepdf[pages={1-2}]{../datasheet/Atmega8L.pdf}
+
+\newpage
+\section{Referencias}
 \begin{thebibliography}{9}
 
 \bibitem{embrlabs}
