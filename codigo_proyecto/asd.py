@@ -5,18 +5,22 @@ from time import time
 TAMANIO_TEMPERATURA = 1
 
 VOLT = 2.56 / 255
-A = -8.0468
-B = 33.826
-
 
 def traducir_voltaje(leido):
-	return ord(leido) * VOLT
+	return ord(leido)
 
 def traducir_temperatura(leido):
-	return traducir_voltaje(leido)*A+B,traducir_voltaje(leido)
+	return ord(leido)/2.0
+	
 
-DATA_TYPE = {"A":("Temperatura Ambiente",TAMANIO_TEMPERATURA,traducir_voltaje),"P":("Tension Peltier",TAMANIO_TEMPERATURA,traducir_voltaje),
-		"I":("\nNumero Ciclo",1,ord), "T":("Temperatura Peltier",TAMANIO_TEMPERATURA,traducir_voltaje)}
+DATA_TYPE = {"A":("Temperatura Ambiente",TAMANIO_TEMPERATURA,traducir_temperatura),
+		"P":("Tension Peltier",TAMANIO_TEMPERATURA,traducir_voltaje),
+		"I":("\nNumero Ciclo",1,ord), 
+		"T":("Temperatura Disipador",TAMANIO_TEMPERATURA,traducir_temperatura),
+		"X":("Temperatura Peltier",TAMANIO_TEMPERATURA,traducir_temperatura),
+		"W":("PWM",TAMANIO_TEMPERATURA,traducir_voltaje),
+		"M":("Tension Maxima",TAMANIO_TEMPERATURA,traducir_voltaje),
+		"N":("Tension Minima",TAMANIO_TEMPERATURA,traducir_voltaje),}
 
 def main():
 	serial_port = serial.Serial("/dev/ttyUSB0",38400)

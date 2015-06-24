@@ -50,7 +50,7 @@ rjmp	main
 #define	PWM_inicial 100
 
 #define Eeprom_Inicio_Calor  0x64
-#define Eeprom_Inicio_Frio  0x84
+#define Eeprom_Inicio_Frio  0x94
 
 ;Saltea el vector de interrupción   
 .org 0x0020
@@ -595,8 +595,14 @@ SET_COLD:
 ;Formato: [Tension minima, Dif_Temperatura*2]
 .org	0x0064
 .byte	0	,	0
-.byte	20  ,	0
-.byte	40	,	6
+.byte	1	,	0
+.byte	5	,	1
+.byte	10  ,	2
+.byte	15	,	3
+.byte	20	,	4
+.byte	25	,	5
+.byte	30	,	6
+.byte	40	,	7
 .byte	50	,	8
 .byte	60	,	10
 .byte	80	,	12
@@ -607,14 +613,18 @@ SET_COLD:
 
 ; TABLA PARA MODO FRIO
 ;Formato: [Tension minima, Dif_Temperatura*2]
-.org	0x0080
+.org	0x0094
 .byte	0	,	0
 .byte	1	,	0
-.byte	10  ,	1
-.byte	30	,	2
-.byte	40	,	4
-.byte	45	,	6
-.byte	50	,	8
+.byte	5	,	1
+.byte	10  ,	2
+.byte	15	,	3
+.byte	20	,	4
+.byte	25	,	5
+.byte	30	,	6
+.byte	40	,	7
+.byte	45	,	8
+.byte	50	,	9
 .byte	60	,	10
 .byte	80	,	14
 .byte	90  ,	16
