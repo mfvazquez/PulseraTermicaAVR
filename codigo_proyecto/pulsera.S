@@ -50,8 +50,8 @@ rjmp	main
 #define	PWM_inicial 			95
 
 
-#define Eeprom_Inicio_Calor  0x64
-#define Eeprom_Inicio_Frio  0x94
+#define Eeprom_Inicio_Calor  	0x64
+#define Eeprom_Inicio_Frio  	0x94
 
 
 ;Saltea el vector de interrupcion   

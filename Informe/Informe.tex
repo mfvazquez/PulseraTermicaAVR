@@ -21,10 +21,11 @@
 \usepackage{anysize}		%Permite modificar los margenes del documento
 \usepackage{abstract} % paquete para el resumen del articulo
 \usepackage{amssymb}
-
 \usepackage{courier}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{pdfpages}
+
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -128,14 +129,14 @@ temperatura corporal. Se utilizará un módulo termoeléctrico para enviar
 variaciones de calor o frío a la muñeca del usuario para modificar
 la percepción térmica del cuerpo.
 
-
 Su función es generar pulsos de frío o calor, de manera de generar una sensación de 
 confort para una persona en condiciones donde la temperatura es muy alta 
 o muy baja respectivamente.
 Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso de intel 
 \emph{Make It Wearable} \cite{Make It Wearable}.
 
-\section{Especificaciones}
+
+\subsection{Especificaciones}
 
 El dispositivo utilizará una celda Peltier para enviar pulsos de calor
 o frío. De forma que se logre una diferencia de temperatura mayor a $0,4\, \unit{^oC/seg.}$
@@ -148,7 +149,7 @@ y analizar si deberá enviar o recibir calor.
 Finalmente deberá controlar que se cumpla el ciclo en base a la corriente
 que circulará por la celda Peltier.
 
-\subsection{Componentes}
+\subsubsection{Componentes}
 
 Deberá contar con los siguientes componentes:
 
@@ -322,22 +323,110 @@ maxima registrada en los termistores a $R_{0\,\unit{^oC}} = 15\, \unit{k\Omega}$
 \subsection{Microcontrolador}
 Para este proyecto se utilizo un microcontrolador \texttt{Atmega8L}. El datasheet del mismo se puede obtener en la pagina de Atmel\cite{datasheet}
 \subsection{Configuraciones}
-\subsubsection{Clock}
-El clock del microcontrolador fue establecido en 8MHz. 
+\subsubsection{Low Fuse}
+Se configuro este registro para que el clock del microcontrolador estuvise establecido en 8MHz. 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
 7&6&5&4&3&2&1&0\\\hline
-a&a&a&a&a&a&a&a\\\hline
-0&0&0&0&0&0&0&0\\\hline
+\textbf{1}&\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{0}&\textbf{0}\\\hline
+BODLVL&BODEN&SUT1&SUT0&CKSEL3&CKSEL2&CKSEL1&CKSEL0\\\hline
 \end{tabular}
 \end{center}
-\subsubsection{PWM}
-El PWM 
-\newpage
-\section{Codigo Proyecto}
-\lstinputlisting{../codigo_proyecto/pulsera.S}
+Solo se modificaron los valores de CKSEL, el resto de los bits fue dejado en la configuracion que venia de fabrica.
+
+\subsubsection{UCSRC}\label{UCSRC}
+Se configuro este registro para setear que el puerto serie envie datos de 8bits, con un bit de stop y sin bit de paridad
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{1}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{1}&\textbf{0}\\\hline
+URSEL&UMSEL&UPM1&UPM0&USBS&UCSZ1&UCSZ0&UCPOL\\\hline
+\end{tabular}
+\end{center}
+
+\begin{description}
+\item{Configuracion segun el bit}
+\item{Bit 7}:
+\item{Bit 6}: Modo Asincronico
+\item{Bit 5 y 4}: Sin bit de paridad
+\item{Bit 3}: Un bit de STOP
+\item{Bit 2 y 1}: Datos de 8 bits
+\item{Bit 0}: 0 Por modo Asincronico
+\end{description}
+
+\subsubsection{UBRRL}
+Se configuro este registro para setear el Baud Rate del puerto serie a $38.4Mhz$
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{0}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}\\\hline
+\multicolumn{8}{|c|}{UBRR[7:0]}\\\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{TCCR2}\label{TCCR2}
+Se configuro este registro para setear el modo de funcionamiento del contador 2. 
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{0}&\textbf{1}&\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{1}\\\hline
+FOC2&WGM20&COM21&COM20&WGM21&CS22&CS21&CS20\\\hline
+\end{tabular}
+\end{center}
+
+\begin{description}
+\item{Configuracion segun el bit}
+\item{Bit 7}: 0, por ser modo PWM
+\item{Bit 6 y 3}: Modo PWM, Phase Correct
+\item{Bit 5 y 4}: Modo set on match en subida y clear on match en bajada
+\item{Bit 2 - 0}: Sin prescaler
+\end{description}
+
+\section{Software}
+
+\subsection{Protocolo puerto serie}
+Para la comunicacion desde el puerto serie se utilizo un protocolo con el siguiente formato:
+
+\begin{itemize}
+\item \textbf{Primer bloque}: Un byte con un caracter \textit{ASCII} alfanumerico identificador el dato a mandar.
+\item \textbf{Siguientes bloque}: Uno o mas bytes con el dato a enviar. El receptor se debe encargar de determinar el largo de este en base a lo recibido en el primer bloque.
+\end{itemize}
+
+En particular para este proyecto, se utilizaron datos de un byte\footnote{Esto fue en parte una consecuencia de la eleccion del modelo del microcontrolador. Por otro lado, tampoco eran necesarios datos mas grandes.} y se enviaron con la configuracion detallada en la seccion \ref{UCSRC} (Pagina: \pageref{UCSRC}), con lo cual los paquetes enviados por puerto respetan el siguiente formato:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}\hline
+1-bit&8-bits&1-bit&1-bit&8-bits&1-bit\\\hline
+START&Tipo de dato&STOP&START&Dato enviado&STOP\\\hline
+\end{tabular}
+\end{center}
+
+
+\section{Conclusiones}
+
+En este punto se hará una autocrítica acerca de los errores y aciertos logrados . También se podrán  hacer sugerencias sobre futuras mejoras en el proyecto y si consideran que otro grupo lo puede continuar. Incluir en este punto las diferencias, si las hubiere, entre las especificaciones originales previstas en el anteproyecto y las finalmente alcanzadas.
+
+\appendix 
 
 \newpage
+\section{Codigo Proyecto}
+\subsection{Pulsera.S}
+\lstinputlisting{../codigo_proyecto/pulsera.S}
+\newpage
+\lstset{language=Make}
+\subsection{Makefile}
+\lstinputlisting{../codigo_proyecto/Makefile}
+
+\section{Datasheets}
+
+\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
+
+\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
+
+\includepdf[pages={1-2}]{../datasheet/Atmega8L.pdf}
+
+\newpage
+\section{Referencias}
 \begin{thebibliography}{9}
 
 \bibitem{embrlabs}
@@ -353,5 +442,16 @@ El PWM
   \ULurl{http://www.atmel.com/images/atmel-2486-8-bit-avr-microcontroller-atmega8_l_datasheet.pdf}
 
 \end{thebibliography}
+
+\newpage
+\section{Presupuesto}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}\hline
+Componente&Precio xU&Cantidad&Precio total\\ \hline
+Placa Peltier&\$0.00&1&\$000.00\\ \hline
+\multicolumn{3}{|r|}{Total}&\$000.00\\ \hline
+\end{tabular}
+\end{center}
 
 \end{document}
