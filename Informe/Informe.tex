@@ -299,6 +299,24 @@ Se configuro este registro para setear el Baud Rate del puerto serie a $38.4Mhz$
 \end{tabular}
 \end{center}
 
+\subsubsection{TCCR2}\label{TCCR2}
+Se configuro este registro para setear el modo de funcionamiento del contador 2. 
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{0}&\textbf{1}&\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{1}\\\hline
+FOC2&WGM20&COM21&COM20&WGM21&CS22&CS21&CS20\\\hline
+\end{tabular}
+\end{center}
+
+\begin{description}
+\item{Configuracion segun el bit}
+\item{Bit 7}: 0, por ser modo PWM
+\item{Bit 6 y 3}: Modo PWM, Phase Correct
+\item{Bit 5 y 4}: Modo set on match en subida y clear on match en bajada
+\item{Bit 2 - 0}: Sin prescaler
+\end{description}
+
 \section{Software}
 
 \subsection{Protocolo puerto serie}
