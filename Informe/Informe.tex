@@ -118,25 +118,16 @@
  
 
 \begin{document}
-\title{\textbf{Proyecto: Dispositivo autorregulador de la percepción térmica corporal}}
-\author{
-  Martinez, Gaston - 91383\\
-  \texttt{gaston.martinez.90@gmail.com}  
-  \and
-   Vázquez, Matías - 91523\\
-  \texttt{mfvazquez@gmail.com}
-}
-\date{\today}
-\maketitle
 
-\begin{abstract} %Resumen
-\emph{Se diseñará e implementará una pulsera térmica que regulará la
+\tableofcontents
+\newpage
+
+\section{Objetivos}
+Se diseñará e implementará una pulsera térmica que regulará la
 temperatura corporal. Se utilizará un módulo termoeléctrico para enviar
 variaciones de calor o frío a la muñeca del usuario para modificar
-la percepción térmica del cuerpo.}
-\end{abstract}
+la percepción térmica del cuerpo.
 
-\section{Introducción}
 
 Su función es generar pulsos de frío o calor, de manera de generar una sensación de 
 confort para una persona en condiciones donde la temperatura es muy alta 
@@ -147,39 +138,41 @@ Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso
 \section{Especificaciones}
 
 El dispositivo utilizará una celda Peltier para enviar pulsos de calor
-o frío. De forma que se logre una diferencia de temperatura de $0,4\, \unit{^oC/seg.}$
+o frío. De forma que se logre una diferencia de temperatura mayor a $0,4\, \unit{^oC/seg.}$
 durante 5 segundos y durante los siguientes 10 segundos entrará
 en estado de espera, para luego volver a iniciar el ciclo. 
 
 Deberá contar con un sensor de temperatura para medir la temperatura ambiente
 y analizar si deberá enviar o recibir calor.
 
-Finalmente deberá controlar que se cumpla el ciclo utilizando una termocupla
-para medir la temperatura corporal cercana a la placa de peltier.
+Finalmente deberá controlar que se cumpla el ciclo en base a la corriente
+que circulará por la celda Peltier.
 
 \subsection{Componentes}
 
-Deberá contar con los siguientes componentes.
+Deberá contar con los siguientes componentes:
 
 \begin{itemize}
-\item{Placa de peltier:} Generará los pulsos térmicos en la muñeca del usuario.
-\item{Termómetro:} Medirá la temperatura ambiente y en base a ella decidirá 
-si se debe aumentar o reducir la temperatura en la termocupla.
-\item{Termocupla:} Contará con una doble finalidad. Por un lado permitirá 
-medir el cambio de temperatura de la placa; y por el otro permitirá medir 
-la temperatura actual del cuerpo al momento de colocarse la pulsera.
+\item{Celda Peltier:} Generará los pulsos de calor en la muñeca del usuario.
+\item{Circuito regulador de corriente:} Regulará la corriente suministrada
+a la celda peltier.
+\item{Disipador:} La celda Peltier contará con un disipador para evitar
+fijar la temperatura de una de sus placas.
+\item{Termistores:} Contará con dos termistores. Uno para medir la
+temperatura ambiente y en base a esta decidir el modo de trabajo, frío
+o calor. El segundo termistor medirá la temperatura del disipador conectado
+a la celda Peltier para poder realizar una estimación de la temperatura
+de la celda.
 \item{Salida de puerto serie:} Servirá para poder monitorear en una 
 computadora la temperatura de la placa.
-\item{Fuente:} Se encargará de suministrar la corriente necesaria a la 
-placa de peltier y proporcionará alimentación a todos los dispositivos utilizados.
-\item{Pulsador:} Para poder invertir el estado de trabajo, de frío a calor 
+\item{Fuente:} Suministrará la corriente necesaria a la celda Peltier y 
+ proporcionará alimentación a todos los dispositivos utilizados.
+\item{Interruptor:} Para poder invertir el estado de trabajo, de frío a calor 
 y viceversa.
-\item{Disipador:} Se encargará de disipar el calor del lado opuesto al de 
-la muñeca de la placa de peltier.
-\item{Controlador:} Se utilizara un microcontrolador AVR. Recibirá la temperatura ambiente del termómetro
-para decidir que régimen de trabajo establecer, y con la temperatura suministrada por la termocupla
-decidirá cuanta corriente suministrarle a la celda Peltier mediante un circuito regulador de corriente.
-También estará conectado a un pulsador para invertir el régimen de trabajo.
+\item{Controlador:} Se utilizara un microcontrolador AVR. Es
+el encargado de obtener las temperaturas de los termistores para definir
+el modo de trabajo y autoregular la corriente de la celda Peltier mediante
+el circuito regulador de corriente.
 \end{itemize}
 
 \subsection{Diagrama de Flujo}
@@ -205,47 +198,124 @@ También estará conectado a un pulsador para invertir el régimen de trabajo.
 
 \section{Diseño}
 
-\subsection{Circuito regulador de corriente}
+\subsection{Esquematico}
 
-Para la construcción del circuito regulador de corriente se utilizará
-un regulador de tensión {\bf LM317}. Partiendo del circuito mostrado
-en la figura número \ref{circuito:reg_corriente}. Se obtendrá el
-valor mínimo de $R_1$ para obtener la corriente máxima de salida $I_{out}$
-mediante la ecuación número \ref{eq:iout}.
 
-\begin{figure}[H]
-\centering
-\begin{circuitikz}[american]\shorthandoff{>}
-\draw
-(0,0) to [short] (9.5,0)
-to [short] (2.5,1)
-to [short] (0,1)
-to [short] (0,0)
-(0,0.10) to [open,l=\bf{LM317}] (2.5,0.10)
- 
-(2.5,0.5) to [R, l=$R_1$] (5, 0.5)
-to [short, -o , i=$I_{out}$] (6.5, 0.5)
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.8]{../circuitos/esquematico.pdf}
+\caption{diagrama esquemático}
+ \label{fig:esquematico}
+\end{center}
+\end{figure}
 
-(1.25, 0) to [short] (1.25, -1)
-to [short] (5, -1)
-to [short, -*] (5, 0.5)
+\subsection{Componentes}
 
-(-1, 0.5) to [short, o-, l= $V_{in}$] (0, 0.5)
+\begin{itemize}
+\item{Celda Peltier:} Celda peltier de $10\, \unit{W}$ y $15$x$15\,\unit{mm}$ 
+\item{LM7805:} Regulador de tensión para habilitar el puente H, alimentar
+el microcontrolador y suministrarle tensión constante a las resistencias conectadas
+en serie a los termistores.
+\item{Interruptor:} Interruptor para activar la inversión de la polaridad.
+\item{Resistencias:}
+	\begin{itemize}
+	\item Dos resiststencias de $4.7\,\unit{k\Omega}$
+	\item Dos resiststencias de $22.0\,\unit{k\Omega}$
+	\item Una resistencia de $1.0\,\unit{k\Omega}$
+	\end{itemize}
+\item{Capacitores:} 
+	\begin{itemize}
+	\item 1 capacitor de \unit{10\, \unit{$\mu$F}} para generar
+	tensión constante del PWM recibido.
+	\item 2 capacitores de \unit{0.1\, \unit{$\mu$F}} Conectados en paralelo
+	a las alimentaciones del puente H, recomendados por el fabricante. 
+	\end{itemize}
+\item{LM358:} Dos amplificadores operacionales. Uno para suministrar corriente
+a la base del NPN y el segundo para amplificar la tensión leída del constantán. 
+\item{TIP31C:} Transistor de potencia NPN, utilizado para regular la corriente.
+\item{L298D:} Puente H utilizado para invertir la polaridad de la celda Peltier
+\item{Constantán:} alambre utilizado para sensar la corriente generada.
+\item{Bateria:} de $12\, \unit{V}$ y $2.9\, \unit{Ah}$
+\item{Pines:}
+	\begin{itemize}
+	\item 3 pines para el puerto serie.
+	\item 2 pines para el reseteo del microcontrolador.
+	\item 2 pines para conectar la celda peltier al circuito.
+	\end{itemize}
+\item{Termistores:} Dos termistores NTC de $10\, \unit{k\Omega}$
+\end{itemize}
 
-;\end{circuitikz}
-\caption{Circuito regulador de corriente}
-\label{circuito:reg_corriente}
+\subsection{Regulador de Corriente}
+
+Se utilizó un regulador de corriente controlado por un PWM como se muestra
+en la figura \ref{fig:reg_corriente}
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.75]{../circuitos/regulador_corriente.pdf}
+\caption{Regulador de Corriente}
+ \label{fig:reg_corriente}
+\end{center}
+\end{figure}
+
+El circuito RC generará una tensión constante del PWM generado por el
+microcontrolador. Dicha tensión regulará la corriente suministrada a la
+base del NPN por el amplificador operacional, generando una corriente
+constnte entre el colector y el emisor del transistor.
+
+Se optó por utilizar un L298D para el puente H ya que cuenta en un mismo
+integrado dos puentes H que soportan $2\, \unit{A}$ de corriente. 
+Conectados en paralelo como se muestra en la figura \ref{fig:reg_corriente} 
+se puede duplicar dicha corriente máxima para que soporte hasta $4\, \unit{A}$ de corriente.
+
+Al final del circuito se sensará la corriente generada mediante la tensión
+en el alambre constatán que es amplificada por el amplificador operacional.
+Para que la tensión de salida varíe entre $0\, \unit{V}$ y $2.56\, \unit{V}$
+y sea leído por el microcontrolador.
+
+Las resistencias del amplificador se obtuvieron considerando que para
+la corriente maxima registrada, la salida no supere los $2.56\, \unit{V}$.
+Se registró una corriente maxima de $1.75\, \unit{A}$ y se midió una
+resistencia de $0.25\, \unit{\Omega}$.
+
+La tensión de salida se obtiene mediante:
+
+\begin{equation}
+V_{ADC1} = R_{constantan} I_{MAX} \frac{R_3 + R_2}{R_3}
+\label{eq:tension_salida}
+\end{equation}
+
+Luego fijando $R_3 = 1\, \unit{k\Omega}$ y $R_2 = 4.7\, \unit{k\Omega}$
+se verificó que la tensión no supere los $2.56\, \unit{V}$:
+
+\[ \displaystyle V_{ADC1} = 0.25\, \unit{\Omega}\ 1.75\, \unit{A} \frac{1\, \unit{k\Omega} + 4.7\, \unit{k\Omega}}{1\, \unit{k\Omega}} = 2.49 \unit{V} \]
+
+\subsection{Medición de la temperatura}
+
+Para medir la temperatura se utilizó un divisor resistivo
+utilizando termistores para medir su tensión y poder estimar la temperatura.
+Se obtuvieron las resistencias a conectar en serie con los termistores de
+forma que la tensión maxima no supere los $2.56\, \unit{V}$
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=1]{../circuitos/temperatura.pdf}
+\caption{Divisor de tensión de los termistores}
+ \label{fig:temperatura}
+\end{center}
 \end{figure}
 
 \begin{equation}
-I_{out} = \frac{1.25\, \unit{V}}{R_1}
-\label{eq:iout}
+V_{termistor} = 5\, \unit{V} \frac{R_{termistor}}{R_{termistor}+R_{serie}}
+\label{eq:tension_termistor}
 \end{equation}
- 
-La corriente máxima de salida será necesaria para alcanzar una diferencia 
-de temperatura de $2\, \unit{^oC}$ entre una de las caras de la celda Peltier 
-y la temperatura ambiente. Que se deberá obtener experimentalmente con
-la celda Peltier utilizada.
+
+Finalmente se eligió una resistencia de $R_{serie} = 22\, \unit{k\Omega}$
+para $R_4$ y $R_5$ verificando que la tensión en los termistores no supere
+la tensión de referencia del ADC del microcontrolador para la resistencia
+maxima registrada en los termistores a $R_{0\,\unit{^oC}} = 15\, \unit{k\Omega}$ :
+
+\[ \displaystyle V_{termistor} = 5\, \unit{V} \frac{15\, \unit{k\Omega}}{15\, \unit{k\Omega}+22\, \unit{k\Omega}} = 2\, \unit{V}\]
 
 \section{Especificaciones del microcontrolador}
 
