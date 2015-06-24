@@ -47,7 +47,7 @@ rjmp	main
 #define Incremento_Pulso_Calor	3
 #define Incremento_Pulso_Frio	10
 #define Incremento_Regulacion 1
-#define	PWM_inicial 100
+#define	PWM_inicial 95
 
 #define Eeprom_Inicio_Calor  0x64
 #define Eeprom_Inicio_Frio  0x84
@@ -94,7 +94,7 @@ REDUCIR_LOOP:
 	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
 	cbi _SFR_IO_ADDR(PORTB), 	3
 
-	rcall STANDBY
+;	rcall STANDBY
 	rjmp LOOP
 	
 ;SEND SNIPPET
@@ -115,7 +115,6 @@ TABLA_CALOR:
 	rjmp	CARGAR_TABLA
 TABLA_FRIO:	
 	ldi		Reg_Temporal, Eeprom_Inicio_Frio
-	rjmp	CARGAR_TABLA
 CARGAR_TABLA:
 	inc		Reg_Temporal
 	inc		Reg_Temporal
@@ -135,9 +134,11 @@ CARGAR_TABLA:
 ;-------------------------------------------------------------------------------------
 ; espera r27 * 100mseg
 ESPERA:
-	rcall	TRANSMITIR_DATOS
 	rcall	SET_PWM
+	rcall	TRANSMITIR_DATOS
 	rcall 	DEMORA
+
+
 	dec 	r27
 	clr 	Reg_Temporal
 	cpse	r27, Reg_Temporal
@@ -190,12 +191,10 @@ TRANSMITIR_DATOS:
 	lds 	Reg_Temporal,		Temp_Ambiente
 	rcall 	USART_Transmit
 
-
 	ldi 	Reg_Temporal,		Dato_Tension_Salida 				; tipo de dato a mandar
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Tension_Salida
 	rcall 	USART_Transmit
-
 	
 	ldi 	Reg_Temporal,		Dato_Tempe_Disipador				; tipo de dato a mandar
 	rcall 	USART_Transmit
@@ -211,17 +210,16 @@ TRANSMITIR_DATOS:
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		PWM
 	rcall 	USART_Transmit
-	
 		
-;	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
-;	rcall 	USART_Transmit
-;	lds 	Reg_Temporal,		Tension_min
-;	rcall 	USART_Transmit
+	ldi 	Reg_Temporal,		Dato_min				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		Tension_min
+	rcall 	USART_Transmit
 
-;	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
-;	rcall 	USART_Transmit
-;	lds 	Reg_Temporal,		Tension_max
-;	rcall 	USART_Transmit
+	ldi 	Reg_Temporal,		Dato_max				; tipo de dato a mandar
+	rcall 	USART_Transmit
+	lds 	Reg_Temporal,		Tension_max
+	rcall 	USART_Transmit
 	
 	ret
 ;-------------------------------------------------------------------------------------
@@ -254,14 +252,13 @@ LEER_PELTIER:
 SET_PWM:
 	lds		r30, PWM
 	lds		Reg_Temporal, Modo_Standby
-
 	cpi		Reg_Temporal, 1
 	breq	APLICAR_CAMBIO					;Si esta en modo standby no realiza cambios
 	
 	lds		r29, Tension_Salida	
 	lds		r17, Tension_min
 	lds		r18, Tension_max
-	ldi		r26, 	Incremento_Regulacion				;valor a ser restado o sumado
+	ldi		r26, Incremento_Regulacion				;valor a ser restado o sumado
 	
 	cp		r29, r17
 	brlo	AUMENTAR
@@ -320,11 +317,10 @@ DEMORA:
 	out 	_SFR_IO_ADDR(TCNT1L), Reg_Temporal
 	ldi		Reg_Temporal, 4						; 0000 0100 habilita poner en 1 
 	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
-	out 	_SFR_IO_ADDR(TIMSK), Reg_Temporal	; el bit 2 de TIRF cuando haya overflow
+	out 	_SFR_IO_ADDR(TIMSK), Reg_Temporal	; el bit 3 de TIRF cuando haya overflow
 	ldi 	Reg_Temporal, 0b00000011				; velocidad: clk/64
 	out		_SFR_IO_ADDR(TCCR1B), Reg_Temporal
 DEMORA_LOOP:
-		
 	in 		Reg_Temporal, _SFR_IO_ADDR(TIFR)
 	sbrs	Reg_Temporal, 2
 	rjmp 	DEMORA_LOOP
@@ -342,11 +338,11 @@ DEMORA_LOOP:
 ;Standby
 ;Espera durante 10 segundos
 STANDBY:
-	ldi 	r29 , 0xFF							;PWM
-	sts		PWM, r29
-	rcall 	RESET_PWM
 	ldi	Reg_Temporal, 1
 	sts	Modo_Standby, Reg_Temporal
+	ldi 	r29 , 255							;PWM
+	sts		PWM, r29
+	rcall 	SET_PWM
 	ldi r27, 100
 	rcall ESPERA
 	clr	Reg_Temporal
@@ -555,32 +551,31 @@ SET_COLD:
 
 ;Tablas de conversion 
 ;Formato: [(Tension medida, Temperatura*2),...]
-.byte	214	,	14
-.byte	211	,	16
-.byte	209	,	18
-.byte	207	,	20
-.byte	205	,	22
-.byte	204	,	24
-.byte	203	,	26
-.byte	202	,	28
-.byte	200	,	30
-.byte	198	,	32
-.byte	196	,	34
-.byte	194	,	36
-.byte	192	,	38
-.byte	191	,	40
-.byte	182	,	42
-.byte	179	,	44
-.byte	176	,	46
-.byte	173	,	48
-.byte	170	,	50
-.byte	167	,	52
-.byte	170	,	54
-.byte	167	,	56
-.byte	164	,	58
-.byte	161	,	60
-.byte	158	,	62
-.byte	156	,	64
+.byte	204	,	14
+.byte	201	,	16
+.byte	199	,	18
+.byte	197	,	20
+.byte	195	,	22
+.byte	194	,	24
+.byte	193	,	26
+.byte	192	,	28
+.byte	190	,	30
+.byte	188	,	32
+.byte	186	,	34
+.byte	184	,	36
+.byte	182	,	38
+.byte	181	,	40
+.byte	172	,	42
+.byte	169	,	44
+.byte	166	,	46
+.byte	163	,	48
+.byte	160	,	49
+.byte	159	,	50
+.byte	158	,	53
+.byte	157	,	56
+.byte	156	,	60
+.byte	155	,	62
+.byte	154	,	64
 .byte	153	,	66
 .byte	152	,	68
 .byte	151	,	70
@@ -595,9 +590,16 @@ SET_COLD:
 ;Formato: [Tension minima, Dif_Temperatura*2]
 .org	0x0064
 .byte	0	,	0
-.byte	20  ,	0
-.byte	40	,	6
-.byte	50	,	8
+.byte 	5 	,	0
+.byte	10  ,	1
+.byte 	15 	,	2
+.byte	20  ,	3
+.byte 	25 	,	4
+.byte	30	,	5
+.byte 	35  ,   6
+.byte	40	,	7
+.byte 	45  ,   8
+.byte	50	,	9
 .byte	60	,	10
 .byte	80	,	12
 .byte	90  ,	16
@@ -607,16 +609,12 @@ SET_COLD:
 
 ; TABLA PARA MODO FRIO
 ;Formato: [Tension minima, Dif_Temperatura*2]
-.org	0x0080
+.org	0x0100
 .byte	0	,	0
 .byte	1	,	0
-.byte	10  ,	1
-.byte	30	,	2
-.byte	40	,	4
-.byte	45	,	6
-.byte	50	,	8
-.byte	60	,	10
-.byte	80	,	14
+.byte	40  ,	1
+.byte	60	,	2
+.byte	80	,	4
 .byte	90  ,	16
 .byte	100 ,	18
 .byte	110	,	20

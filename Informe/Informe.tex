@@ -22,6 +22,41 @@
 \usepackage{amssymb}
 
 
+\usepackage{listings}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+\lstdefinelanguage
+   [x64]{Assembler}     % add a "x64" dialect of Assembler
+   [x86masm]{Assembler} % based on the "x86masm" dialect
+   % with these extra keywords:
+   	{	
+	morecomment=[l]{*},
+    	morestring=[b]',
+	morekeywords={WTO,SUBENTRY,BASES,WTOR,ECB,BE,CLI,B,SUBEXIT,
+	ICM,SRL,SLL,LA,BCT,MVC,CVD,UNPK,MVZ,BAL,STCM,ZAP,PACK,CVB,CLR,
+	LH,H,X,MF,C,E,MVI,SR,F,AR,CLM,BNL,CLM,DC,XL400,XL1,CL1,HL2,XL1,CL4,D,CL2,PL2,BNE,IC,SRDL}
+  	} % etc.
+
+\lstset{language=[x64]Assembler,
+   keywordstyle=\bf\color{blue},
+   commentstyle=\it\color{dkgreen},
+   stringstyle=\color{gray},
+   numbers=left,
+   numberstyle=\tiny\color{black},
+   stepnumber=2,
+   numbersep=8pt,
+   backgroundcolor=\color{white},
+   tabsize=4,
+   showspaces=false,
+   showstringspaces=false}
+
+
+
+
+
+
 
 
 
@@ -228,6 +263,8 @@ a&a&a&a&a&a&a&a\\\hline
 \subsubsection{PWM}
 El PWM 
 \subsection{}
+
+\lstinputlisting{pulsera.S}
 
 \newpage
 \begin{thebibliography}{9}
