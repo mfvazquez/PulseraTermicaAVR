@@ -57,10 +57,10 @@ rjmp	main
 main:
 
 STACK_Init:
-	ldi 	Reg_Temporal, 			low(RAMEND)
-	out 	_SFR_IO_ADDR(SPL), 		Reg_Temporal
-	ldi		Reg_Temporal, 			high(RAMEND)
-	out		_SFR_IO_ADDR(SPH), 		Reg_Temporal
+	ldi 	Reg_Temporal, 		low(RAMEND)
+	out 	_SFR_IO_ADDR(SPL), 	Reg_Temporal
+	ldi		Reg_Temporal, 		high(RAMEND)
+	out		_SFR_IO_ADDR(SPH), 	Reg_Temporal
 
 	rcall	PWM_Init
 	rcall 	PUENTE_H_Init
@@ -71,64 +71,57 @@ LOOP:
 	
 	rcall	GET_MODE							;obtengo el modo de operacion
 
-	ldi 	r29 , PWM_inicial							;PWM
-	sts		PWM, r29
+	ldi 	r29,				PWM_inicial		;PWM
+	sts		PWM,				r29
 	rcall	RESET_PWM
 
 REDUCIR_LOOP:
 
 	mov		Reg_Temporal,		Contador
 
-	ldi r27, 10
-	rcall ESPERA
+	ldi 	r27, 				10
+	rcall 	ESPERA
 	rcall	AUMENTAR_PULSO
 	
 	
-	inc 	Contador		 						;Cumpli una vuelta
+	inc 	Contador		 					;Cumpli una vuelta
 	ldi 	Reg_Temporal,		6
-	cpse 	Contador,		Reg_Temporal			;No saltar si ya ejecuto 5 vueltas
+	cpse 	Contador,			Reg_Temporal	;No saltar si ya ejecuto 5 vueltas
 
 	rjmp	REDUCIR_LOOP					
 
-	cbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
-	sbi _SFR_IO_ADDR(DDRB),		3 			;(OC2) para salida
-	cbi _SFR_IO_ADDR(PORTB), 	3
+	cbi 	_SFR_IO_ADDR(DDRB),	3 				;(OC2) para salida
+	sbi 	_SFR_IO_ADDR(DDRB),	3 				;(OC2) para salida
+	cbi 	_SFR_IO_ADDR(PORTB),3
 
 ;	rcall STANDBY
 	rjmp LOOP
-	
-;SEND SNIPPET
-;ldi Reg_Temporal,'A' ;tipo de dato a mandar
-;rcall USART_Transmit
-;mov Reg_Temporal,Modo_Operacion ;No se, imprimo el modo
-;rcall USART_Transmit
 
 ;-------------------------------------Funciones---------------------------------------
 RESET_PWM:
-	clr		r17								; 8 bits mas significativos de la direccion de la eeprom a leer
-	
-	lds		r31, Modo_Operacion
-	cpi		r31, 0
+	clr		r17	
+	lds		r31, 				Modo_Operacion
+	cpi		r31, 				0
 	breq	TABLA_FRIO
 TABLA_CALOR:
-	ldi		Reg_Temporal, Eeprom_Inicio_Calor
+	ldi		Reg_Temporal, 		Eeprom_Inicio_Calor
 	rjmp	CARGAR_TABLA
 TABLA_FRIO:	
-	ldi		Reg_Temporal, Eeprom_Inicio_Frio
+	ldi		Reg_Temporal, 		Eeprom_Inicio_Frio
 CARGAR_TABLA:
 	inc		Reg_Temporal
 	inc		Reg_Temporal
-	sts		Iterador, Reg_Temporal
+	sts		Iterador, 			Reg_Temporal
 	rcall	LEER_EEPROM
-	sts		Tension_min, r25
+	sts		Tension_min, 		r25
 
 	inc		Reg_Temporal
 	inc		Reg_Temporal
 	rcall	LEER_EEPROM
-	sts		Tension_max, r25
+	sts		Tension_max, 		r25
 	
-	lds		r29, PWM
-	out 	_SFR_IO_ADDR(OCR2),r29
+	lds		r29, 				PWM
+	out 	_SFR_IO_ADDR(OCR2),	r29
 	
 	ret
 ;-------------------------------------------------------------------------------------
@@ -141,7 +134,7 @@ ESPERA:
 
 	dec 	r27
 	clr 	Reg_Temporal
-	cpse	r27, Reg_Temporal
+	cpse	r27, 				Reg_Temporal
 	rjmp 	ESPERA
 	ret
 
@@ -150,29 +143,36 @@ ESPERA:
 ; mas significativos y r16 para los 8 bits menos significativos. Guarda el contenido
 ; en el registro r25
 LEER_EEPROM:
-	sbic	_SFR_IO_ADDR(EECR), EEWE	; 	espera hasta que la ultima escritura este terminada
+	;Espera hasta que la ultima escritura este terminada
+	sbic	_SFR_IO_ADDR(EECR),	EEWE
 	rjmp 	LEER_EEPROM
-	out		_SFR_IO_ADDR(EEARH), r17	;	r17 elige la tabla	
-	out		_SFR_IO_ADDR(EEARL), r16	;	r16 el campo
-	sbi		_SFR_IO_ADDR(EECR), EERE	;	habilita el modo lectura
-	in		r25, _SFR_IO_ADDR(EEDR)		;	guarda el contenido de la dirección antes cargada en r25
+
+	;r17 elige la tabla	
+	out		_SFR_IO_ADDR(EEARH),r17	
+	;r16 el campo
+	out		_SFR_IO_ADDR(EEARL),r16	
+	
+	;habilita el modo lectura
+	sbi		_SFR_IO_ADDR(EECR), EERE	
+	;guarda el contenido de la dirección antes cargada en r25
+	in		r25, 				_SFR_IO_ADDR(EEDR)		
 	ret
 
 ;-------------------------------------------------------------------------------------
 ; Inicializa el puente H seteando los pines 1 y 2 del puerto B como salida.
 PUENTE_H_Init:
-	sbi _SFR_IO_ADDR(DDRB),		2 
-	sbi _SFR_IO_ADDR(DDRB),		1
+	sbi 	_SFR_IO_ADDR(DDRB),	2 
+	sbi 	_SFR_IO_ADDR(DDRB),	1
 	ret
 
 MODO_FRIO:
-	sbi _SFR_IO_ADDR(PORTB),	1 			
-	cbi _SFR_IO_ADDR(PORTB),	2 			
+	sbi 	_SFR_IO_ADDR(PORTB),1 			
+	cbi 	_SFR_IO_ADDR(PORTB),2 			
 	ret
 	
 MODO_CALOR:
-	cbi _SFR_IO_ADDR(PORTB),	1 			
-	sbi _SFR_IO_ADDR(PORTB),	2 			
+	cbi 	_SFR_IO_ADDR(PORTB),1 			
+	sbi 	_SFR_IO_ADDR(PORTB),2 			
 	ret
 ;-------------------------------------------------------------------------------------
 
@@ -181,27 +181,28 @@ TRANSMITIR_DATOS:
 	rcall 	LEER_DISIPADOR
 	rcall	LEER_PELTIER
 	
-	ldi 	Reg_Temporal,		Dato_Num_Iteracion				;Envio la iteracion
+	;Envio la iteracion
+	ldi 	Reg_Temporal,		Dato_Num_Iteracion		; tipo de dato a mandar
 	rcall 	USART_Transmit
 	mov 	Reg_Temporal,		Contador 
 	rcall 	USART_Transmit
 		
-	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 				; tipo de dato a mandar
+	ldi 	Reg_Temporal,		Dato_Tempe_Ambiente 	; tipo de dato a mandar			
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Temp_Ambiente
 	rcall 	USART_Transmit
 
-	ldi 	Reg_Temporal,		Dato_Tension_Salida 				; tipo de dato a mandar
+	ldi 	Reg_Temporal,		Dato_Tension_Salida 	; tipo de dato a mandar			
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Tension_Salida
 	rcall 	USART_Transmit
 	
-	ldi 	Reg_Temporal,		Dato_Tempe_Disipador				; tipo de dato a mandar
+	ldi 	Reg_Temporal,		Dato_Tempe_Disipador	; tipo de dato a mandar			
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Temp_Disipador
 	rcall 	USART_Transmit
 	
-	ldi 	Reg_Temporal,		Dato_Tempe_Peltier				; tipo de dato a mandar
+	ldi 	Reg_Temporal,		Dato_Tempe_Peltier		; tipo de dato a mandar		
 	rcall 	USART_Transmit
 	lds 	Reg_Temporal,		Temp_Peltier
 	rcall 	USART_Transmit
@@ -222,25 +223,26 @@ TRANSMITIR_DATOS:
 	rcall 	USART_Transmit
 	
 	ret
+
 ;-------------------------------------------------------------------------------------
 LEER_AMBIENTE:
 	ldi 	Reg_Temporal,		0b11000000			; canal 0 temperatura ambiente
 	rcall 	READ_ADC 								; leer tension del peltier
 	rcall	TRADUCIR_TERMISTOR
-	sts 	Temp_Ambiente,  Reg_Temporal
+	sts 	Temp_Ambiente,  	Reg_Temporal
 	ret
 
 LEER_DISIPADOR:
 	ldi 	Reg_Temporal,		0b11000010			; canal 2 temperatura disipador
 	rcall 	READ_ADC 								; leer tension del termistor
 	rcall	TRADUCIR_TERMISTOR
-	sts 	Temp_Disipador, Reg_Temporal
+	sts 	Temp_Disipador, 	Reg_Temporal
 	ret
 
 LEER_PELTIER:
 	ldi 	Reg_Temporal,		0b11000001			; canal 1 tension peltier
 	rcall 	READ_ADC 								; leer tension del peltier
-	sts		Tension_Salida, Reg_Temporal
+	sts		Tension_Salida, 	Reg_Temporal
 	rcall 	TRADUCIR_PELTIER
 	ret
 
