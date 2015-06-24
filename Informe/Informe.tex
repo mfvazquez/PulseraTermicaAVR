@@ -213,7 +213,7 @@ el circuito regulador de corriente.
 \subsection{Componentes}
 
 \begin{itemize}
-\item{Celda Peltier:} Celda peltier de $10\, \unit{W}$ y $15$x$15\,\unit{mm}$ 
+\item{Celda Peltier:} Celda peltier de $10\, \unit{W}$ y $15\, \unit{mm}$x$15\,\unit{mm}$ 
 \item{LM7805:} Regulador de tensión para habilitar el puente H, alimentar
 el microcontrolador y suministrarle tensión constante a las resistencias conectadas
 en serie a los termistores.
@@ -404,7 +404,44 @@ START&Tipo de dato&STOP&START&Dato enviado&STOP\\\hline
 
 \section{Conclusiones}
 
-En este punto se hará una autocrítica acerca de los errores y aciertos logrados . También se podrán  hacer sugerencias sobre futuras mejoras en el proyecto y si consideran que otro grupo lo puede continuar. Incluir en este punto las diferencias, si las hubiere, entre las especificaciones originales previstas en el anteproyecto y las finalmente alcanzadas.
+En este punto se hará una autocrítica acerca de los errores y aciertos 
+logrados . También se podrán  hacer sugerencias sobre futuras mejoras 
+en el proyecto y si consideran que otro grupo lo puede continuar. Incluir 
+en este punto las diferencias, si las hubiere, entre las especificaciones 
+originales previstas en el anteproyecto y las finalmente alcanzadas.
+
+
+Las celdas Peltier son dispositivos muy delicados, por lo que requerirá
+estar bien protegidas a posibles impactos, ya que el mínimo impacto
+las daña permanentemente. 
+No se logró encontrar una relación simple entre la corriente de la celda
+y su diferencia de temperatura, ya que esta no solo depende de la corriente
+sino también de la temperatura inicial. Por los datos medidos para realizar
+las tablas llegamos a la conclución de que la corriente fija una velocidad
+a la que la temperatura variará hasta llegar a un valor pico.
+
+Fué mas facil regular el modo frío ya que al iniciar el standby la
+temperatura regresaba rapidamente a su valor inicial. En cambio para el
+modo calor, al iniciar el standby la celda peltier no llega a enfriarse
+hasta obtener su valor inicial luego del standby, por lo que en cada ciclo
+irá acumulando temperatura hasta llegar a un valor máximo que depende
+de la corriente máxima que reciba.
+
+Por las mismas razones mencionadas sobre el comportamiento de la celda Peltier,
+deducir su temperatura en base a la temperatura del disipador y la corriente
+que circula por la celda devuelve datos poco presisos, lo que se podria calcular
+es la diferencia de temperatura entre cada pulso con el inicio del ciclo.
+Para medir la temperatura del peltier se deberá agregar una placa que
+transmita el calor del peltier para aumentar su superficie y poder medir su
+temperatura directamente con una termocupla, ya que detectan mas rápido
+los cambios bruscos de temperatura, a diferencia de los termistores. 
+
+
+Finalmente, para lograr las condiciones especificadas por el proyecto
+no es necesario generar corrientes altas. Con una corriente máxima de
+$500\, \unit{mA}$ bien reguladas se hubiese logrado el objetivo del producto
+y se habría reducido su tamaño debido a que no requiere una batería de
+gran tamaño.
 
 \appendix 
 
@@ -419,11 +456,15 @@ En este punto se hará una autocrítica acerca de los errores y aciertos logrado
 
 \section{Datasheets}
 
-\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
-
-\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
-
 \includepdf[pages={1-2}]{../datasheet/Atmega8L.pdf}
+
+\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
+
+\includepdf{../datasheet/L298.pdf}
+
+\includepdf{../datasheet/LM358.PDF}
+
+\includepdf{../datasheet/TIP31C.pdf}
 
 \newpage
 \section{Referencias}
@@ -449,8 +490,19 @@ En este punto se hará una autocrítica acerca de los errores y aciertos logrado
 \begin{center}
 \begin{tabular}{|l|r|r|r|}\hline
 Componente&Precio xU&Cantidad&Precio total\\ \hline
-Placa Peltier&\$0.00&1&\$000.00\\ \hline
-\multicolumn{3}{|r|}{Total}&\$000.00\\ \hline
+Celda Peltier $10\, \unit{W}$ $15\, \unit{mm}$x$15\, \unit{mm}$ &\$120.00&1&\$120.00\\ \hline
+Atmega8-L &\$42.00&1&\$42.00\\ \hline
+L298 &\$47.00&1&\$47.00\\ \hline
+LM358 &\$8.00&1&\$8.00\\ \hline
+LM7850 &\$5.00&1&\$5.00\\ \hline
+Disipador &\$10.00&3&\$36.00\\ \hline
+Termistor &\$7.00&2&\$14.00\\ \hline
+Resistencia &\$0.5&5&\$2.50\\ \hline
+Capacitor &\$0.50&3&\$1.50\\ \hline 
+Bateria &\$160.00&1&\$160.00\\ \hline
+Interruptor &\$5.00&1&\$5.00\\ \hline
+Placa perforada &\$26.00&1&\$5.00\\ \hline
+\multicolumn{3}{|r|}{Total}&\$467.00\\ \hline
 \end{tabular}
 \end{center}
 
