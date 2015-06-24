@@ -69,22 +69,21 @@ STACK_Init:
 	rcall	USART_Init
 
 LOOP:
-	;Iteraciones, se usa para saber la diferencia que se debe obtener
 	clr 	Contador		 					
 
 	rcall	GET_MODE							;obtengo el modo de operacion
 
 	ldi 	r29,				PWM_inicial		;PWM
 	sts		PWM,				r29
-	rcall	RESET_PWM
+	rcall	RESET_PWM							; Inicializa el PWM con el valor inicial en base al modo de operación
 
 REDUCIR_LOOP:
 
 	mov		Reg_Temporal,		Contador
 
 	ldi 	r27, 				10
-	rcall 	ESPERA
-	rcall	AUMENTAR_PULSO
+	rcall 	ESPERA								; Espera de 1 seg, mientras espera regula el PWM
+	rcall	AUMENTAR_PULSO						; Modifica el PWM para el siguiente segundo
 	
 	
 	inc 	Contador		 					;Cumpli una vuelta
@@ -97,13 +96,14 @@ REDUCIR_LOOP:
 	sbi 	_SFR_IO_ADDR(DDRB),	3 				;(OC2) para salida
 	cbi 	_SFR_IO_ADDR(PORTB),3
 
-;	rcall STANDBY
+	rcall STANDBY
 	rjmp LOOP
 
 ;-------------------------------------Funciones---------------------------------------
+; Reinicia el PWM al valor inicial de cada ciclo y carga las tablas a ser
+; recorridas dependiendo del modo de operacion
 RESET_PWM:
-	;8 bits mas significativos de la direccion de la eeprom a leer
-	clr		r17	
+	clr		r17									;8 bits mas significativos de la direccion de la eeprom a leer	
 	lds		r31, 				Modo_Operacion
 	cpi		r31, 				0
 	breq	TABLA_FRIO
@@ -129,12 +129,12 @@ CARGAR_TABLA:
 	
 	ret
 ;-------------------------------------------------------------------------------------
-; espera r27 * 100mseg
+; espera r27 * 100mseg. Cada 100 mseg hace un muestre de datos y regula
+; el PWM
 ESPERA:
 	rcall	SET_PWM
 	rcall	TRANSMITIR_DATOS
 	rcall 	DEMORA
-
 
 	dec 	r27
 	clr 	Reg_Temporal
@@ -287,9 +287,10 @@ APLICAR_CAMBIO:
 	out 	_SFR_IO_ADDR(OCR2),	r30
 	ret
 ;-------------------------------------------------------------------------------------
-
+; Aumenta el pulso de calor/frio del segundo que recien empieza,
+; Carga la tension minima y maxima leidas de eeprom de la iteracion
+; correspondiente.
 AUMENTAR_PULSO:
-	;8 bits mas significativos de la direccion de la eeprom a leer
 	clr		r17								
 	
 	lds		Reg_Temporal,		Iterador
@@ -324,8 +325,8 @@ DEMORA:
 	ldi 	Reg_Temporal, 		0x2B
 	out 	_SFR_IO_ADDR(TCNT1L),Reg_Temporal
 	ldi		Reg_Temporal, 		4				; 0000 0100 habilita poner en 1 
-	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
-	out 	_SFR_IO_ADDR(TIMSK),Reg_Temporal	; el bit 3 de TIRF cuando haya overflow
+	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal	; Reinicia el overflow flag
+	out 	_SFR_IO_ADDR(TIMSK),Reg_Temporal	; bit 2 en 1 habilita la interrupcion por overflow
 	ldi 	Reg_Temporal, 		0b00000011		; velocidad: clk/64
 	out		_SFR_IO_ADDR(TCCR1B),Reg_Temporal
 
@@ -335,7 +336,7 @@ DEMORA_LOOP:
 	rjmp 	DEMORA_LOOP
 	
 	ldi 	Reg_Temporal, 		1
-	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
+	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal	; Se limpia TIRF
 	clr 	Reg_Temporal						; finalizo contador
 	out 	_SFR_IO_ADDR(TIFR), Reg_Temporal
 	out		_SFR_IO_ADDR(TCCR1B),Reg_Temporal
@@ -345,7 +346,7 @@ DEMORA_LOOP:
 
 ;-------------------------------------------------------------------------------------
 ;Standby
-;Espera durante 10 segundos
+;Espera durante 10 segundos, setea el PWM en 255 para no generar corriente.
 STANDBY:
 	ldi		Reg_Temporal, 		1
 	sts		Modo_Standby, 		Reg_Temporal
@@ -364,7 +365,7 @@ STANDBY:
 ;Reg_Temporal: valor a transmitir
 
 USART_Transmit:
-	sbis 	_SFR_IO_ADDR(UCSRA),UDRE 			;Espero a que se libere el UDRE
+	sbis 	_SFR_IO_ADDR(UCSRA),UDRE 					;Espero a que se libere el UDRE
 	rjmp 	USART_Transmit
 
 	out 	_SFR_IO_ADDR(UDR),	Reg_Temporal
@@ -375,11 +376,10 @@ USART_Transmit:
 ;Inicializa el USART para poder enviar datos
 
 USART_Init:
-	ldi 	Reg_Temporal, 		(1<<TXEN) 	;enable
+	ldi 	Reg_Temporal, 		(1<<TXEN) 				;enable
 	out 	_SFR_IO_ADDR(UCSRB),Reg_Temporal
 
-	;8bits, 1bit de stop, sin bit de paridad
-	ldi 	Reg_Temporal, 		(1<<URSEL)|(3<<UCSZ0)
+	ldi 	Reg_Temporal, 		(1<<URSEL)|(3<<UCSZ0)	;8bits, 1bit de stop, sin bit de paridad
 	out 	_SFR_IO_ADDR(UCSRC),Reg_Temporal
 
 	ldi		Reg_Temporal,		0xC						;Baud 38400 (Clock de 8Mhz)
@@ -395,21 +395,20 @@ USART_Init:
 
 READ_ADC:
 
-	out 	_SFR_IO_ADDR(ADMUX),Reg_Temporal 	; 
-	ldi 	Reg_Temporal,		0b11001111		; 
-	out 	_SFR_IO_ADDR(ADCSRA),Reg_Temporal 	;
+	out 	_SFR_IO_ADDR(ADMUX),Reg_Temporal	;	Canal a ser leido, 7 y 6 en 1 para utilizar la tensión interna de referencia 2.56V 
+	ldi 	Reg_Temporal,		0b11001111		; habilita ADC,  inicia la conversion, desabilita free runing, desabilita interrupcion, 
+	out 	_SFR_IO_ADDR(ADCSRA),Reg_Temporal 	; buts 2:0 Factor de division 128
 
 WAIT_ADC:  
-	
-	in    	Reg_Temporal,		_SFR_IO_ADDR(ADCSRA)	
 	;Espera a que finalice la lectura
+	in    	Reg_Temporal,		_SFR_IO_ADDR(ADCSRA)	
 	sbrs	Reg_Temporal,		4
 	rjmp	WAIT_ADC
 
-	sbi		_SFR_IO_ADDR(ADCSRA),4
+	sbi		_SFR_IO_ADDR(ADCSRA),4				; Reinicia el interrupt flag
 
-	in 		Reg_Temporal, 		_SFR_IO_ADDR(ADCL) 	;
-	in 		r17, 				_SFR_IO_ADDR(ADCH) 	;
+	in 		Reg_Temporal, 		_SFR_IO_ADDR(ADCL) 	
+	in 		r17, 				_SFR_IO_ADDR(ADCH) 	
 	lsr 	r17
 	ror 	Reg_Temporal
 	lsr 	r17
@@ -422,9 +421,8 @@ WAIT_ADC:
 ;Inicializa los puertos de salida del pwm
 PWM_Init:
 	sbi 	_SFR_IO_ADDR(DDRB),	3 				;(OC2) para salida
-	;(01110001) Phase correct, no pre escalar, clear on match
-	ldi 	Reg_Temporal,		0x71		
-	out 	_SFR_IO_ADDR(TCCR2),Reg_Temporal
+	ldi 	Reg_Temporal,		0x71			;(01110001) Phase correct,
+	out 	_SFR_IO_ADDR(TCCR2),Reg_Temporal	; no pre escalar, clear on match
 	ret
 
 ;-------------------------------------------------------------------------------------
@@ -522,7 +520,7 @@ GET_MODE:
 	ldi 	Reg_Temporal,		0b11000000		; canal 0 temperatura ambiente
 	rcall 	READ_ADC 	
 	rcall	TRADUCIR_TERMISTOR					;obtengo la temperatura
-	cpi 	Reg_Temporal,		50				;temperatura arbitraria para el modo calor
+	cpi 	Reg_Temporal,		50				;temperatura*2 arbitraria para el modo calor
 	brsh	COLD_MODE
 	
 HOT_MODE:
@@ -556,28 +554,36 @@ SET_COLD:
 
 ;Tablas de conversion 
 ;Formato: [(Tension medida, Temperatura*2),...]
-.byte	204	,	14
-.byte	201	,	16
-.byte	199	,	18
-.byte	197	,	20
-.byte	195	,	22
-.byte	194	,	24
-.byte	193	,	26
-.byte	192	,	28
-.byte	190	,	30
-.byte	188	,	32
-.byte	186	,	34
-.byte	184	,	36
-.byte	182	,	38
-.byte	181	,	40
-.byte	172	,	42
-.byte	169	,	44
-.byte	166	,	46
-.byte	163	,	48
-.byte	160	,	49
-.byte	159	,	50
-.byte	158	,	53
-.byte	157	,	56
+.byte	204	,	30
+.byte	204	,	31
+.byte	204	,	32
+.byte	204	,	33
+.byte	204	,	34
+.byte	204	,	35
+.byte	204	,	36
+.byte	204	,	37
+.byte	204	,	38
+.byte	201	,	39
+.byte	199	,	40
+.byte	197	,	41
+.byte	195	,	42
+.byte	194	,	43
+.byte	193	,	44
+.byte	192	,	45
+.byte	190	,	46
+.byte	188	,	47
+.byte	186	,	48
+.byte	184	,	49
+.byte	182	,	50
+.byte	181	,	51
+.byte	172	,	52
+.byte	169	,	53
+.byte	166	,	54
+.byte	163	,	55
+.byte	160	,	56
+.byte	159	,	57
+.byte	158	,	58
+.byte	157	,	59
 .byte	156	,	60
 .byte	155	,	62
 .byte	154	,	64
@@ -596,19 +602,17 @@ SET_COLD:
 .org	0x0064
 .byte	0	,	0
 .byte	1	,	0
-.byte	5	,	1
-.byte	10  ,	2
-.byte	15	,	3
-.byte	20	,	4
-.byte	25	,	5
-.byte	30	,	6
-.byte	40	,	7
-.byte	50	,	8
-.byte	60	,	10
-.byte	80	,	12
-.byte	90  ,	16
-.byte	100 ,	24
-.byte	110	,	36
+.byte	20	,	10
+.byte	25	,	15
+.byte	30	,	17
+.byte	35	,	21
+.byte	40	,	23
+.byte	50  ,	24
+.byte	55	,	18
+.byte	58	,	20
+.byte	60	,	24
+.byte	62	,	28
+.byte	70	,	7
 .byte	0xFF, 0xFF ;FIN DE TABLA
 
 ; TABLA PARA MODO FRIO
@@ -617,21 +621,15 @@ SET_COLD:
 .org	0x0094
 .byte	0	,	0
 .byte	1	,	0
-.byte	5	,	1
-.byte	10  ,	2
-.byte	15	,	3
-.byte	20	,	4
-.byte	25	,	5
-.byte	30	,	6
-.byte	40	,	7
-.byte	45	,	8
-.byte	50	,	9
-.byte	60	,	10
-.byte	80	,	14
-.byte	90  ,	16
-.byte	100 ,	18
-.byte	110	,	20
-.byte	115	,	22
+.byte	30  ,	14
+.byte	35	,	16
+.byte	40	,	18
+.byte	45	,	20
+.byte	50	,	22
+.byte	60  ,	30
+.byte	100 ,	36
+.byte	110	,	40
+.byte	115	,	42
 .byte	0xFF, 0xFF ;FIN DE TABLA
 
 .end
