@@ -3,16 +3,16 @@
 .section .data
 .org 0x000
 
-Temp_Ambiente: 	.byte 	0
+Temp_Ambiente: 	.byte 0
 Temp_Disipador: .byte 0
-Temp_Peltier: .byte 0
+Temp_Peltier: 	.byte 0
 Tension_Salida: .byte 0
 
 Modo_Operacion: .byte 0
 
-Modo_Standby: .byte 0
+Modo_Standby: 	.byte 0
 
-PWM: .byte	0
+PWM: 			.byte 0
 Tension_min:	.byte 0
 Tension_max:	.byte 0
 Iterador:		.byte 0
@@ -35,22 +35,22 @@ rjmp	main
 ;Constantes:
 ;Tipos de dato para mandar por serial
 
-#define Dato_Tempe_Ambiente 'A'
-#define Dato_Tempe_Disipador  'T'
-#define Dato_Num_Iteracion  'I'
-#define Dato_Tension_Salida 'P'
-#define Dato_Tempe_Peltier  'X'
-#define Dato_PWM  'W'
-#define Dato_max	'M'
-#define Dato_min	'N'
+#define Dato_Tempe_Ambiente 	'A'
+#define Dato_Tempe_Disipador  	'T'
+#define Dato_Num_Iteracion  	'I'
+#define Dato_Tension_Salida 	'P'
+#define Dato_Tempe_Peltier  	'X'
+#define Dato_PWM  				'W'
+#define Dato_max				'M'
+#define Dato_min				'N'
 
-#define Incremento_Pulso_Calor	3
+#define Incremento_Pulso_Calor	 3
 #define Incremento_Pulso_Frio	10
-#define Incremento_Regulacion 1
-#define	PWM_inicial 95
+#define Incremento_Regulacion 	 1
+#define	PWM_inicial 			95
 
-#define Eeprom_Inicio_Calor  0x64
-#define Eeprom_Inicio_Frio  0x84
+#define Eeprom_Inicio_Calor  	0x64
+#define Eeprom_Inicio_Frio  	0x80
 
 ;Saltea el vector de interrupción   
 .org 0x0020
@@ -99,6 +99,7 @@ REDUCIR_LOOP:
 
 ;-------------------------------------Funciones---------------------------------------
 RESET_PWM:
+	;8 bits mas significativos de la direccion de la eeprom a leer
 	clr		r17	
 	lds		r31, 				Modo_Operacion
 	cpi		r31, 				0
@@ -253,60 +254,62 @@ LEER_PELTIER:
 
 SET_PWM:
 	lds		r30, PWM
-	lds		Reg_Temporal, Modo_Standby
-	cpi		Reg_Temporal, 1
-	breq	APLICAR_CAMBIO					;Si esta en modo standby no realiza cambios
+	lds		Reg_Temporal, 		Modo_Standby
+	cpi		Reg_Temporal, 		1
+	;Si esta en modo standby no realiza cambios
+	breq	APLICAR_CAMBIO							
 	
-	lds		r29, Tension_Salida	
-	lds		r17, Tension_min
-	lds		r18, Tension_max
-	ldi		r26, Incremento_Regulacion				;valor a ser restado o sumado
+	lds		r29, 				Tension_Salida	
+	lds		r17, 				Tension_min
+	lds		r18, 				Tension_max
+	ldi		r26, 				Incremento_Regulacion ;valor a ser restado o sumado
 	
-	cp		r29, r17
+	cp		r29, 				r17
 	brlo	AUMENTAR
 	
-	cp		r29, r18
+	cp		r29, 				r18
 	brlo	APLICAR_CAMBIO	
 
 DISMINUIR:	
-	cpi		r30, 100
+	cpi		r30, 				100
 	breq 	APLICAR_CAMBIO
-	add		r30,	r26
+	add		r30,				r26
 	rjmp	APLICAR_CAMBIO
 AUMENTAR:
-	cpi		r30, 0
+	cpi		r30, 				0
 	breq 	APLICAR_CAMBIO
-	sub		r30,	r26
+	sub		r30,				r26
 APLICAR_CAMBIO:
-	sts		PWM, r30
-	out 	_SFR_IO_ADDR(OCR2),r30
+	sts		PWM, 				r30
+	out 	_SFR_IO_ADDR(OCR2),	r30
 	ret
 ;-------------------------------------------------------------------------------------
 
 AUMENTAR_PULSO:
-	clr		r17								;  8 bits mas significativos de la direccion de la eeprom a leer
+	;8 bits mas significativos de la direccion de la eeprom a leer
+	clr		r17								
 	
-	lds		Reg_Temporal,	Iterador
+	lds		Reg_Temporal,		Iterador
 	inc		Reg_Temporal
 	inc		Reg_Temporal
-	sts		Iterador, Reg_Temporal
+	sts		Iterador, 			Reg_Temporal
 	
 	rcall	LEER_EEPROM
-	sts		Tension_min, r25
+	sts		Tension_min, 		r25
 	inc		Reg_Temporal
 	inc		Reg_Temporal
 	rcall	LEER_EEPROM
-	sts		Tension_max, r25
+	sts		Tension_max, 		r25
 	
-	lds		r31, Modo_Operacion
-	cpi		r31, 0
+	lds		r31, 				Modo_Operacion
+	cpi		r31, 				0
 	breq	AUMENTO_FRIO
 AUMENTO_CALOR:
-	ldi		r26, Incremento_Pulso_Calor
+	ldi		r26, 				Incremento_Pulso_Calor
 	rcall AUMENTAR
 	ret
 AUMENTO_FRIO:
-	ldi		r26, Incremento_Pulso_Frio
+	ldi		r26, 				Incremento_Pulso_Frio
 	rcall	AUMENTAR
 	ret
 
