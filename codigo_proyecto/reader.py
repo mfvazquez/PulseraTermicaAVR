@@ -38,6 +38,8 @@ def main():
     plt.ion()
     fig = plt.figure()
     start_time = time.time()
+    initial_time = time.time()
+
     serial_port = serial.Serial("/dev/ttyUSB0", 38400)
 
     temperaturas_peltier = [0, 0]
@@ -106,10 +108,13 @@ def main():
             # tiempo_temperatura_ambiente = tiempo_temperatura_ambiente[1:]
             pass
 
+    	if (time.time() - initial_time) < 0.25:
+    		continue
+
         plt.clf()
 
         # Temperatura Peltier
-        print tiempo_temperatura_peltier, temperaturas_peltier
+        #print tiempo_temperatura_peltier, temperaturas_peltier
         plt.subplot(221)
         plt.plot(tiempo_temperatura_peltier, temperaturas_peltier, linestyle='-', color='b',
                  label='Temperatura',
@@ -120,7 +125,7 @@ def main():
         plt.title('Temperatura Peltier [{0:03f}]'.format(temperaturas_peltier[-1]))
         plt.grid(True, which="both", linestyle="dotted")
 
-        print tiempo_temperatura_ambiente, temperaturas_ambiente
+        #print tiempo_temperatura_ambiente, temperaturas_ambiente
         plt.subplot(222)
         plt.plot(tiempo_temperatura_ambiente, temperaturas_ambiente, linestyle='-', color='r',
                  label='Temperatura',
@@ -144,7 +149,7 @@ def main():
         plt.title('Comparacion Temperaturas')
         plt.grid(True, which="both", linestyle="dotted")
 
-        print iteracion_temperatura_ambiente, temperaturas_ambiente_iteracion
+        #print iteracion_temperatura_ambiente, temperaturas_ambiente_iteracion
 
         plt.subplot(224)
         plt.plot(iteracion_temperatura_ambiente, temperaturas_ambiente_iteracion, linestyle='-', color='r',
@@ -161,6 +166,8 @@ def main():
 
         fig.canvas.draw()
         plt.pause(0.001)
+
+       	initial_time = time.time()
 
 
 main()

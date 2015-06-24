@@ -1,4 +1,5 @@
 \documentclass[10pt,spanish,a4paper,openany,notitlepage]{article}
+\usepackage{etex}
 %-------------------------------------Paquetes-----------------------------------------------------------------------
 \usepackage[spanish,es-tabla]{babel}  	% Traduce los textos a castellano
 \usepackage[utf8]{inputenc}	% Permite escribir directamente áéíóúñ
@@ -21,9 +22,44 @@
 \usepackage{abstract} % paquete para el resumen del articulo
 \usepackage{amssymb}
 
+\usepackage{courier}
+\usepackage{color}
+\usepackage{listings}
 
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
 
+\lstdefinelanguage
+   [x64]{Assembler}     % add a "x64" dialect of Assembler
+   [x86masm]{Assembler} % based on the "x86masm" dialect
+   % with these extra keywords:
+   	{
+   	alsoletter={.\#},	
+	morecomment=[l]{;},
+    	morestring=[b]',
+	morekeywords={[1],\#define,.org,main,ldi,rcall,ramend,_sfr_io_ADDR,spl,sph,
+					lds,sts,clr,cpse,rjmp,cbi,sbi,cpi,breq,,ocr2,,eecr,eewe,eearh,
+					eearl,eecr,eere,eedr,ddrb,portb,cpi,cp,brlo,breq,sbrs,sbis,lsr,
+					brsh,sbrc,sbic,pinb,.byte,.section,.text,.data,.eeprom,.end,
+					lo8,hi8,.global,\#include,r1,r2,r3,r4,r5,r6,r7,r8,r9,10,r11,r12,
+					r13,r14,r15,r16,r17,r18,r19,r20,r21,r22,r23,r24,r25,r26,r27,
+					r28,r29,r30,r31,r32,r33,r34}
+  	} % etc.
 
+\lstset{language=[x64]Assembler,
+   keywordstyle=\bf\color{blue},
+   commentstyle=\it\color{dkgreen},
+   stringstyle=\color{gray},
+   numbers=left,
+   numberstyle=\tiny\color{black},
+   stepnumber=2,
+   numbersep=8pt,
+   backgroundcolor=\color{white},
+   tabsize=4,
+   showspaces=false,
+   showstringspaces=false,
+   extendedchars=\true,
+	inputencoding=utf8}
 
 % todo lo que sigue es para poner links que se les pueda hacer click
 \usepackage{xcolor}
@@ -227,7 +263,9 @@ a&a&a&a&a&a&a&a\\\hline
 \end{center}
 \subsubsection{PWM}
 El PWM 
-\subsection{}
+\newpage
+\section{Codigo Proyecto}
+\lstinputlisting{../codigo_proyecto/pulsera.S}
 
 \newpage
 \begin{thebibliography}{9}
