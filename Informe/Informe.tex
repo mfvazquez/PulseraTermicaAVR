@@ -258,17 +258,65 @@ la celda Peltier utilizada.
 \subsection{Microcontrolador}
 Para este proyecto se utilizo un microcontrolador \texttt{Atmega8L}. El datasheet del mismo se puede obtener en la pagina de Atmel\cite{datasheet}
 \subsection{Configuraciones}
-\subsubsection{Clock}
-El clock del microcontrolador fue establecido en 8MHz. 
+\subsubsection{Low Fuse}
+Se configuro este registro para que el clock del microcontrolador estuvise establecido en 8MHz. 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
 7&6&5&4&3&2&1&0\\\hline
-a&a&a&a&a&a&a&a\\\hline
-0&0&0&0&0&0&0&0\\\hline
+\textbf{1}&\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{0}&\textbf{0}\\\hline
+BODLVL&BODEN&SUT1&SUT0&CKSEL3&CKSEL2&CKSEL1&CKSEL0\\\hline
+\end{tabular}
+\end{center}
+Solo se modificaron los valores de CKSEL, el resto de los bits fue dejado en la configuracion que venia de fabrica.
+
+\subsubsection{UCSRC}\label{UCSRC}
+Se configuro este registro para setear que el puerto serie envie datos de 8bits, con un bit de stop y sin bit de paridad
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{1}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{1}&\textbf{0}\\\hline
+URSEL&UMSEL&UPM1&UPM0&USBS&UCSZ1&UCSZ0&UCPOL\\\hline
+\end{tabular}
+\end{center}
+
+\begin{description}
+\item{Configuracion segun el bit}
+\item{Bit 7}:
+\item{Bit 6}: Modo Asincronico
+\item{Bit 5 y 4}: Sin bit de paridad
+\item{Bit 3}: Un bit de STOP
+\item{Bit 2 y 1}: Datos de 8 bits
+\item{Bit 0}: 0 Por modo Asincronico
+\end{description}
+
+\subsubsection{UBRRL}
+Se configuro este registro para setear el Baud Rate del puerto serie a $38.4Mhz$
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{0}&\textbf{0}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}\\\hline
+\multicolumn{8}{|c|}{UBRR[7:0]}\\\hline
 \end{tabular}
 \end{center}
 
 \section{Software}
+
+\subsection{Protocolo puerto serie}
+Para la comunicacion desde el puerto serie se utilizo un protocolo con el siguiente formato:
+
+\begin{itemize}
+\item \textbf{Primer bloque}: Un byte con un caracter \textit{ASCII} alfanumerico identificador el dato a mandar.
+\item \textbf{Siguientes bloque}: Uno o mas bytes con el dato a enviar. El receptor se debe encargar de determinar el largo de este en base a lo recibido en el primer bloque.
+\end{itemize}
+
+En particular para este proyecto, se utilizaron datos de un byte\footnote{Esto fue en parte una consecuencia de la eleccion del modelo del microcontrolador. Por otro lado, tampoco eran necesarios datos mas grandes.} y se enviaron con la configuracion detallada en la seccion \ref{UCSRC} (Pagina: \pageref{UCSRC}), con lo cual los paquetes enviados por puerto respetan el siguiente formato:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}\hline
+1-bit&8-bits&1-bit&1-bit&8-bits&1-bit\\\hline
+START&Tipo de dato&STOP&START&Dato enviado&STOP\\\hline
+\end{tabular}
+\end{center}
 
 
 \section{Conclusiones}
