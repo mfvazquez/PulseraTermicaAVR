@@ -1,7 +1,7 @@
 EXE = pulsera
 MICRO = atmega8
 
-MSG_EEPROM = Creating load file for EEPROM:
+MSG_EEPROM = Creando archivo para la EEPROM: 
 FORMAT = ihex
 
 
