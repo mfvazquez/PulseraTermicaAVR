@@ -52,7 +52,7 @@ rjmp	main
 #define Eeprom_Inicio_Calor  	0x64
 #define Eeprom_Inicio_Frio  	0x80
 
-;Saltea el vector de interrupción   
+;Saltea el vector de interrupcion   
 .org 0x0020
 main:
 
