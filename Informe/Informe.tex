@@ -262,7 +262,7 @@ en la figura \ref{fig:reg_corriente}
 El circuito RC generará una tensión constante del PWM generado por el
 microcontrolador. Dicha tensión regulará la corriente suministrada a la
 base del NPN por el amplificador operacional, generando una corriente
-constnte entre el colector y el emisor del transistor.
+constante entre el colector y el emisor del transistor.
 
 Se optó por utilizar un L298D para el puente H ya que cuenta en un mismo
 integrado dos puentes H que soportan $2\, \unit{A}$ de corriente. 
@@ -275,8 +275,8 @@ Para que la tensión de salida varíe entre $0\, \unit{V}$ y $2.56\, \unit{V}$
 y sea leído por el microcontrolador.
 
 Las resistencias del amplificador se obtuvieron considerando que para
-la corriente maxima registrada, la salida no supere los $2.56\, \unit{V}$.
-Se registró una corriente maxima de $1.75\, \unit{A}$ y se midió una
+la corriente máxima registrada, la salida no supere los $2.56\, \unit{V}$.
+Se registró una corriente máxima de $1.75\, \unit{A}$ y se midió una
 resistencia de $0.25\, \unit{\Omega}$.
 
 La tensión de salida se obtiene mediante:
@@ -296,7 +296,7 @@ se verificó que la tensión no supere los $2.56\, \unit{V}$:
 Para medir la temperatura se utilizó un divisor resistivo
 utilizando termistores para medir su tensión y poder estimar la temperatura.
 Se obtuvieron las resistencias a conectar en serie con los termistores de
-forma que la tensión maxima no supere los $2.56\, \unit{V}$
+forma que la tensión máxima no supere los $2.56\, \unit{V}$
 
 \begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
 \begin{center}
@@ -314,9 +314,18 @@ V_{termistor} = 5\, \unit{V} \frac{R_{termistor}}{R_{termistor}+R_{serie}}
 Finalmente se eligió una resistencia de $R_{serie} = 22\, \unit{k\Omega}$
 para $R_4$ y $R_5$ verificando que la tensión en los termistores no supere
 la tensión de referencia del ADC del microcontrolador para la resistencia
-maxima registrada en los termistores a $R_{0\,\unit{^oC}} = 15\, \unit{k\Omega}$ :
+máxima registrada en los termistores a $R_{0\,\unit{^oC}} = 15\, \unit{k\Omega}$ :
 
 \[ \displaystyle V_{termistor} = 5\, \unit{V} \frac{15\, \unit{k\Omega}}{15\, \unit{k\Omega}+22\, \unit{k\Omega}} = 2\, \unit{V}\]
+
+\subsection{Interruptor}
+
+La salida del interruptor es recibida por el microcontrolador, para en el siguiente ciclo invertir la polaridad mediante de la celda Peltier y
+evitar un cambio brusco de corriente en la celda Peltier.
+
+El interruptor invertirá el modo de trabajo actual. En caso de encontrarse el dispositivo a temperaturas ambiente menores a $25\, \unit{^oC}$
+automáticamente entrará en modo calor. En caso de estar el interruptor habilitado entrará en modo frío. Caso contrario ocurre
+para temperaturas ambiente mayores a $25\, \unit{^oC}$ por defecto entrará en modo frío, con el interruptor habilitado entrará en modo calor.
 
 \section{Especificaciones del microcontrolador}
 
@@ -324,7 +333,7 @@ maxima registrada en los termistores a $R_{0\,\unit{^oC}} = 15\, \unit{k\Omega}$
 Para este proyecto se utilizo un microcontrolador \texttt{Atmega8L}. El datasheet del mismo se puede obtener en la pagina de Atmel\cite{datasheet}
 \subsection{Configuraciones}
 \subsubsection{Low Fuse}
-Se configuro este registro para que el clock del microcontrolador estuvise establecido en 8MHz. 
+Se configuro este registro para que el clock del microcontrolador sea de 8MHz. 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
 7&6&5&4&3&2&1&0\\\hline
@@ -332,10 +341,10 @@ Se configuro este registro para que el clock del microcontrolador estuvise estab
 BODLVL&BODEN&SUT1&SUT0&CKSEL3&CKSEL2&CKSEL1&CKSEL0\\\hline
 \end{tabular}
 \end{center}
-Solo se modificaron los valores de CKSEL, el resto de los bits fue dejado en la configuracion que venia de fabrica.
+Solo se modificaron los valores de CKSEL, el resto de los bits fue dejado en la configuración que venia de fabrica.
 
 \subsubsection{UCSRC}\label{UCSRC}
-Se configuro este registro para setear que el puerto serie envie datos de 8bits, con un bit de stop y sin bit de paridad
+Se configuro este registro para setear que el puerto serie envíe datos de 8bits, con un bit de stop y sin bit de paridad
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
 7&6&5&4&3&2&1&0\\\hline
@@ -346,12 +355,12 @@ URSEL&UMSEL&UPM1&UPM0&USBS&UCSZ1&UCSZ0&UCPOL\\\hline
 
 \begin{description}
 \item{Configuracion segun el bit}
-\item{Bit 7}:
-\item{Bit 6}: Modo Asincronico
+\item{Bit 7}: Selecciona entre acceder el UCSRC seteando el bit en 1 o acceder al UBRRH seteando el bit en 0.
+\item{Bit 6}: Modo Asincrónico
 \item{Bit 5 y 4}: Sin bit de paridad
 \item{Bit 3}: Un bit de STOP
 \item{Bit 2 y 1}: Datos de 8 bits
-\item{Bit 0}: 0 Por modo Asincronico
+\item{Bit 0}: 0 Por modo Asincrónico
 \end{description}
 
 \subsubsection{UBRRL}
@@ -382,17 +391,37 @@ FOC2&WGM20&COM21&COM20&WGM21&CS22&CS21&CS20\\\hline
 \item{Bit 2 - 0}: Sin prescaler
 \end{description}
 
+\subsubsection{ADCSRA}
+Se configuro este registro para el conversor analógico digital
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
+7&6&5&4&3&2&1&0\\\hline
+\textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{1}&\textbf{1}&\textbf{1}\\\hline
+\multicolumn{8}{|c|}{UBRR[7:0]}\\\hline
+\end{tabular}
+\end{center}
+
+\begin{description}
+\item{Configuracion segun el bit}
+\item{Bit 7}: Habilita ADC
+\item{Bit 6}: Inicializa la conversión
+\item{Bit 5}: Desabilita el free runing
+\item{Bit 4}: Resetea el flag de interrupción pasandole 1
+\item{Bit 3}: Habilita la interrupción
+\item{Bit 2 a 0}: Factor de división: 128 para 111
+\end{description}
+
 \section{Software}
 
 \subsection{Protocolo puerto serie}
-Para la comunicacion desde el puerto serie se utilizo un protocolo con el siguiente formato:
+Para la comunicación desde el puerto serie se utilizo un protocolo con el siguiente formato:
 
 \begin{itemize}
-\item \textbf{Primer bloque}: Un byte con un caracter \textit{ASCII} alfanumerico identificador el dato a mandar.
+\item \textbf{Primer bloque}: Un byte con un carácter \textit{ASCII} alfanumerico identificador el dato a mandar.
 \item \textbf{Siguientes bloque}: Uno o mas bytes con el dato a enviar. El receptor se debe encargar de determinar el largo de este en base a lo recibido en el primer bloque.
 \end{itemize}
 
-En particular para este proyecto, se utilizaron datos de un byte\footnote{Esto fue en parte una consecuencia de la eleccion del modelo del microcontrolador. Por otro lado, tampoco eran necesarios datos mas grandes.} y se enviaron con la configuracion detallada en la seccion \ref{UCSRC} (Pagina: \pageref{UCSRC}), con lo cual los paquetes enviados por puerto respetan el siguiente formato:
+En particular para este proyecto, se utilizaron datos de un byte\footnote{Esto fue en parte una consecuencia de la elección del modelo del microcontrolador. Por otro lado, tampoco eran necesarios datos mas grandes.} y se enviaron con la configuración detallada en la sección \ref{UCSRC} (Pagina: \pageref{UCSRC}), con lo cual los paquetes enviados por puerto respetan el siguiente formato:
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|}\hline
@@ -417,11 +446,11 @@ las daña permanentemente.
 No se logró encontrar una relación simple entre la corriente de la celda
 y su diferencia de temperatura, ya que esta no solo depende de la corriente
 sino también de la temperatura inicial. Por los datos medidos para realizar
-las tablas se llegó a la conclución de que la corriente fija una velocidad
+las tablas se llegó a la conclusión de que la corriente fija una velocidad
 a la que la temperatura variará durante intervalos cortos.
 
-Fué mas facil regular el modo frío ya que al iniciar el standby la
-temperatura regresaba rapidamente a su valor inicial. En cambio para el
+Fue mas fácil regular el modo frío ya que al iniciar el standby la
+temperatura regresaba rápidamente a su valor inicial. En cambio para el
 modo calor, al iniciar el standby la celda peltier no llega a enfriarse
 hasta obtener su valor inicial luego del standby, por lo que en cada ciclo
 irá acumulando temperatura hasta llegar a un valor máximo que depende
@@ -429,10 +458,10 @@ de la corriente máxima que reciba.
 
 Por las mismas razones mencionadas sobre el comportamiento de la celda Peltier,
 deducir su temperatura en base a la temperatura del disipador y la corriente
-que circula por la celda devuelve datos poco presisos, lo que se podria calcular
+que circula por la celda devuelve datos poco precisos, lo que se podría calcular
 es la diferencia de temperatura entre cada pulso con el inicio del ciclo.
-Para medir la temperatura del peltier se deberá agregar una placa que
-transmita el calor del peltier para aumentar su superficie y poder medir su
+Para medir la temperatura del Peltier se deberá agregar una placa que
+transmita el calor del Peltier para aumentar su superficie y poder medir su
 temperatura directamente con una termocupla, ya que detectan mas rápido
 los cambios bruscos de temperatura, a diferencia de los termistores. 
 
@@ -458,13 +487,13 @@ gran tamaño.
 
 \includepdf[pages={1-2}]{../datasheet/Atmega8L.pdf}
 
-\includepdf[pages={1-8}]{../datasheet/termistor.pdf}
+\includepdf[pages={1-2}]{../datasheet/termistor.pdf}
 
-\includepdf{../datasheet/L298.pdf}
+\includepdf[pages={1-2}]{../datasheet/L298.pdf}
 
-\includepdf{../datasheet/LM358.PDF}
+\includepdf[pages={1-2}]{../datasheet/LM358.PDF}
 
-\includepdf{../datasheet/TIP31C.pdf}
+\includepdf[pages={1-2}]{../datasheet/TIP31C.pdf}
 
 \newpage
 \section{Referencias}
