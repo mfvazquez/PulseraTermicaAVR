@@ -27,6 +27,7 @@
 \usepackage{pdfpages}
 
 
+
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 
@@ -68,14 +69,7 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks,urlcolor=blue}
 
-\makeatletter
-\DeclareUrlCommand\ULurl@@{%
-  \def\UrlFont{\ttfamily\color{blue}}%
-  \def\UrlLeft{\uline\bgroup}%
-  \def\UrlRight{\egroup}}
-\def\ULurl@#1{\hyper@linkurl{\ULurl@@{#1}}{#1}}
-\DeclareRobustCommand*\ULurl{\hyper@normalise\ULurl@}
-\makeatother
+
 
 %---------------------------------------Configuraciones de pagina----------------------------------------------
 \marginsize{2.5cm}{2.5cm}{1cm}{1cm}
@@ -126,7 +120,7 @@
 \includegraphics[scale=0.5]{imagenes/FIUBA_ALTA.jpg}\\
 \large{Laboratorio de Microcomputadoras  -  66.09}
 \vspace{1cm}\\
-\Huge{Dispositivo Autorregulador de la Percepción Térmica corporal}\\
+\Huge{Dispositivo Autorregulador de la Percepción Térmica Corporal}\\
 \vspace{7mm}
 \normalsize
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
@@ -219,7 +213,7 @@ Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso
 
 \begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
 \begin{center}
-\includegraphics[scale=0.6]{./imagenes/diagrama_de_flujo.png}
+\includegraphics[scale=0.55]{./imagenes/diagrama_de_flujo.pdf}
 \caption{Diagrama de flujo del proceso}
  \label{fig:diag_flujo}
 \end{center}
@@ -304,7 +298,7 @@ en serie a los termistores.
 a la base del NPN y el segundo para amplificar la tensión leída del constantán. 
 \item{TIP31C:} Transistor de potencia NPN, utilizado para regular la corriente.
 \item{L298D:} Puente H utilizado para invertir la polaridad de la celda Peltier
-\item{Constantán:} alambre utilizado para sensar la corriente generada.
+\item{Constantán:} alambre de $2\, \unit{cm}$ ($0.5\, \unit{mm}$ de diámetro) utilizado para sensar la corriente generada.
 \item{Bateria:} de $12\, \unit{V}$ y $2.9\, \unit{Ah}$
 \item{Pines:}
 	\begin{itemize}
@@ -328,25 +322,25 @@ en la figura \ref{fig:reg_corriente}
 \end{center}
 \end{figure}
 
-El circuito RC generará una tensión constante del PWM generado por el
-microcontrolador. Dicha tensión regulará la corriente suministrada a la
-base del NPN por el amplificador operacional, generando una corriente
+El circuito RC filtra la señal del PWM generado por el
+microcontrolador. Presentando el valor medio en la entrada no inversora del LM358 U1A,
+cuya salida regulará la corriente suministrada a la
+base del transistor NPN por el amplificador operacional, generando una corriente
 constante entre el colector y el emisor del transistor.
 
 Se optó por utilizar un L298D para el puente H ya que cuenta en un mismo
-integrado dos puentes H que soportan $2\, \unit{A}$ de corriente. 
+integrado con dos puentes H que soportan $2\, \unit{A}$ de corriente. 
 Conectados en paralelo como se muestra en la figura \ref{fig:reg_corriente} 
 se puede duplicar dicha corriente máxima para que soporte hasta $4\, \unit{A}$ de corriente.
 
-Al final del circuito se sensará la corriente generada mediante la tensión
-en el alambre constatán que es amplificada por el amplificador operacional.
+La corriente que circula por la celda se mida con una resistencia hecha con
+alambre constatán. La tensión que cae sobre este es amplificada por el LM358 U2A.
 Para que la tensión de salida varíe entre $0\, \unit{V}$ y $2.56\, \unit{V}$
 y sea leído por el microcontrolador.
 
-Las resistencias del amplificador se obtuvieron considerando que para
-la corriente máxima registrada, la salida no supere los $2.56\, \unit{V}$.
-Se registró una corriente máxima de $1.75\, \unit{A}$ y se midió una
-resistencia de $0.25\, \unit{\Omega}$.
+Las resistencias del amplificador U2A se obtuvieron considerando que para
+la corriente máxima registrada de $1.75\, \unit{A}$, la salida no supere los $2.56\, \unit{V}$.
+Siendo de  $0.25\, \unit{\Omega}$ la resistencia del alambre constantan .
 
 La tensión de salida se obtiene mediante:
 
@@ -358,12 +352,18 @@ V_{ADC1} = R_{constantan} I_{MAX} \frac{R_3 + R_2}{R_3}
 Luego fijando $R_3 = 1\, \unit{k\Omega}$ y $R_2 = 4.7\, \unit{k\Omega}$
 se verificó que la tensión no supere los $2.56\, \unit{V}$:
 
-\[ \displaystyle V_{ADC1} = 0.25\, \unit{\Omega}\ 1.75\, \unit{A} \frac{1\, \unit{k\Omega} + 4.7\, \unit{k\Omega}}{1\, \unit{k\Omega}} = 2.49 \unit{V} \]
+\[ \displaystyle V_{ADC1} = 0.25\, \unit{\Omega}\ 1.75\, \unit{A} \frac{1\, \unit{k\Omega} + 4.7\, \unit{k\Omega}}{1\, \unit{k\Omega}} = 2.49 \unit{V} < 2.56 \unit{V} \]
 
-\subsection{Medición de la temperatura}
+\subsection{Medición de las temperaturas}
 
-Para medir la temperatura se utilizó un divisor resistivo
-utilizando termistores para medir su tensión y poder estimar la temperatura.
+Se utilizaron dos termistores. Uno para medir la temperatura ambiente y 
+otro para la temperatura del disipador conectado a la celda Peltier para
+poder estimar la temperatura a la que se encuentra la celda.
+Ambos termistores están conectados de la misma manera como se indica a continuación.
+
+Se utilizó un divisor resistivo para medir la tensión en los termistores y 
+poder obtener la temperatura utilizando tablas con la relación entre
+la tensión leída y la temperatura a la que se encuentra.
 Se obtuvieron las resistencias a conectar en serie con los termistores de
 forma que la tensión máxima no supere los $2.56\, \unit{V}$
 
@@ -387,9 +387,10 @@ máxima registrada en los termistores a $R_{0\,\unit{^oC}} = 15\, \unit{k\Omega}
 
 \[ \displaystyle V_{termistor} = 5\, \unit{V} \frac{15\, \unit{k\Omega}}{15\, \unit{k\Omega}+22\, \unit{k\Omega}} = 2\, \unit{V}\]
 
-\subsection{Interruptor}
+\subsection{Interruptor selector de modo}
 
-La salida del interruptor es recibida por el microcontrolador, para en el siguiente ciclo invertir la polaridad mediante de la celda Peltier y
+La salida del interruptor es recibida por el microcontrolador, para en 
+el siguiente ciclo invertir la polaridad de la celda Peltier mediante el puente H y
 evitar un cambio brusco de corriente en la celda Peltier.
 
 El interruptor invertirá el modo de trabajo actual. En caso de encontrarse el dispositivo a temperaturas ambiente menores a $25\, \unit{^oC}$
@@ -568,34 +569,37 @@ Adaptador UART/USB & \$152.00 & 1 & \$152.00 \\ \hline
 \end{tabular}
 \end{center}
 
+\section{Referencias}
+
+
+
+\begingroup	% redefino section para que thebibliograpy no repita el titulo de la sección
+\renewcommand{\section}[2]{}%
+\begin{thebibliography}{}
+\bibitem{embrlabs}
+  \url{http://www.embrlabs.com/}
+
+\bibitem{Make It Wearable}
+  \url{https://youtu.be/sDZHITVfYrI}
+  
+\bibitem{video MIT}
+  \url{https://youtu.be/kvUMCip-r4A}
+
+\bibitem{datasheet}
+  \url{http://www.atmel.com/images/atmel-2486-8-bit-avr-microcontroller-atmega8_l_datasheet.pdf}
+\end{thebibliography}
+\endgroup
+
 \section{Datasheets}
 
 \includepdf[pages={1-2}]{../datasheet/Atmega8L.pdf}
 
-\includepdf[pages={1-2}]{../datasheet/termistor.pdf}
+\includepdf{../datasheet/termistor.pdf}
 
-\includepdf[pages={1-2}]{../datasheet/L298.pdf}
+\includepdf[pages={1-7}]{../datasheet/L298.pdf}
 
 \includepdf[pages={1-2}]{../datasheet/LM358.PDF}
 
-\includepdf[pages={1-2}]{../datasheet/TIP31C.pdf}
-
-\newpage
-\section{Referencias}
-\begin{thebibliography}{9}
-
-\bibitem{embrlabs}
-  \ULurl{http://www.embrlabs.com/}
-
-\bibitem{Make It Wearable}
-  \ULurl{https://youtu.be/sDZHITVfYrI}
-  
-\bibitem{video MIT}
-  \ULurl{https://youtu.be/kvUMCip-r4A}
-
-\bibitem{datasheet}
-  \ULurl{http://www.atmel.com/images/atmel-2486-8-bit-avr-microcontroller-atmega8_l_datasheet.pdf}
-
-\end{thebibliography}
+\includepdf[pages={1, 3-4}]{../datasheet/TIP31C.pdf}
 
 \end{document}
