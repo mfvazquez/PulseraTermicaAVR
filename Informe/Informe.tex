@@ -135,6 +135,28 @@ o muy baja respectivamente.
 Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso de intel 
 \emph{Make It Wearable} \cite{Make It Wearable}.
 
+\subsection{Diagrama de Bloques}
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.5]{./imagenes/diagrama_de_bloques.png}
+\caption{Diagrama de bloques}
+ \label{fig:diag_bloques}
+\end{center}
+\end{figure}
+
+
+
+\subsection{Diagrama de Flujo}
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.6]{./imagenes/diagrama_de_flujo.png}
+\caption{Diagrama de flujo del proceso}
+ \label{fig:diag_flujo}
+\end{center}
+\end{figure}
+
 
 \subsection{Especificaciones}
 
@@ -176,27 +198,6 @@ el modo de trabajo y autoregular la corriente de la celda Peltier mediante
 el circuito regulador de corriente.
 \end{itemize}
 
-\subsection{Diagrama de Flujo}
-
-\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
-\begin{center}
-\includegraphics[scale=0.6]{./imagenes/diagrama_de_flujo.png}
-\caption{Diagrama de flujo del proceso}
- \label{fig:diag_flujo}
-\end{center}
-\end{figure}
-
-\subsection{Diagrama de Bloques}
-
-\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
-\begin{center}
-\includegraphics[scale=0.5]{./imagenes/diagrama_de_bloques.png}
-\caption{Diagrama de bloques}
- \label{fig:diag_bloques}
-\end{center}
-\end{figure}
-
-
 \section{Diseño}
 
 \subsection{Esquematico}
@@ -204,8 +205,8 @@ el circuito regulador de corriente.
 
 \begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
 \begin{center}
-\includegraphics[scale=0.8]{../circuitos/esquematico.pdf}
-\caption{diagrama esquemático}
+\includegraphics[scale=0.89, angle=-90]{../circuitos/esquematico.pdf}
+\caption{Diagrama esquemático}
  \label{fig:esquematico}
 \end{center}
 \end{figure}
@@ -253,7 +254,7 @@ en la figura \ref{fig:reg_corriente}
 
 \begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
 \begin{center}
-\includegraphics[scale=0.75]{../circuitos/regulador_corriente.pdf}
+\includegraphics[scale=1]{../circuitos/regulador_corriente.pdf}
 \caption{Regulador de Corriente}
  \label{fig:reg_corriente}
 \end{center}
@@ -300,7 +301,7 @@ forma que la tensión máxima no supere los $2.56\, \unit{V}$
 
 \begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
 \begin{center}
-\includegraphics[scale=1]{../circuitos/temperatura.pdf}
+\includegraphics[scale=1.25]{../circuitos/temperatura.pdf}
 \caption{Divisor de tensión de los termistores}
  \label{fig:temperatura}
 \end{center}
@@ -397,7 +398,7 @@ Se configuro este registro para el conversor analógico digital
 \begin{tabular}{|c|c|c|c|c|c|c|c|}\hline
 7&6&5&4&3&2&1&0\\\hline
 \textbf{1}&\textbf{1}&\textbf{0}&\textbf{0}&\textbf{1}&\textbf{1}&\textbf{1}&\textbf{1}\\\hline
-\multicolumn{8}{|c|}{UBRR[7:0]}\\\hline
+ADEN&ADSC&ADFR&ADIF&ADIE&ADPS2&ADPS1&ADPS0\\\hline
 \end{tabular}
 \end{center}
 
@@ -483,6 +484,29 @@ gran tamaño.
 \subsection{Makefile}
 \lstinputlisting{../codigo_proyecto/Makefile}
 
+\newpage
+\section{Presupuesto}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}\hline
+Componente&Precio xU&Cantidad&Precio total\\ \hline
+Celda Peltier $10\, \unit{W}$ $15\, \unit{mm}$x$15\, \unit{mm}$ &\$120.00&1&\$120.00\\ \hline
+Atmega8-L &\$42.00&1&\$42.00\\ \hline
+L298 &\$47.00&1&\$47.00\\ \hline
+LM358 &\$8.00&1&\$8.00\\ \hline
+LM7850 &\$5.00&1&\$5.00\\ \hline
+Disipador &\$12.00&3&\$36.00\\ \hline
+Termistor &\$7.00&2&\$14.00\\ \hline
+Resistencia &\$0.50&5&\$2.50\\ \hline
+Capacitor &\$0.50&5&\$2.50\\ \hline 
+Bateria &\$160.00&1&\$160.00\\ \hline
+Interruptor &\$5.00&1&\$5.00\\ \hline
+Placa perforada &\$26.00&1&\$26.00\\ \hline
+Adaptador UART/USB & \$152.00 & 1 & \$152.00 \\ \hline 
+\multicolumn{3}{|r|}{Total}&\$620.00\\ \hline
+\end{tabular}
+\end{center}
+
 \section{Datasheets}
 
 \includepdf[pages={1-2}]{../datasheet/Atmega8L.pdf}
@@ -512,27 +536,5 @@ gran tamaño.
   \ULurl{http://www.atmel.com/images/atmel-2486-8-bit-avr-microcontroller-atmega8_l_datasheet.pdf}
 
 \end{thebibliography}
-
-\newpage
-\section{Presupuesto}
-
-\begin{center}
-\begin{tabular}{|l|r|r|r|}\hline
-Componente&Precio xU&Cantidad&Precio total\\ \hline
-Celda Peltier $10\, \unit{W}$ $15\, \unit{mm}$x$15\, \unit{mm}$ &\$120.00&1&\$120.00\\ \hline
-Atmega8-L &\$42.00&1&\$42.00\\ \hline
-L298 &\$47.00&1&\$47.00\\ \hline
-LM358 &\$8.00&1&\$8.00\\ \hline
-LM7850 &\$5.00&1&\$5.00\\ \hline
-Disipador &\$10.00&3&\$36.00\\ \hline
-Termistor &\$7.00&2&\$14.00\\ \hline
-Resistencia &\$0.5&5&\$2.50\\ \hline
-Capacitor &\$0.50&3&\$1.50\\ \hline 
-Bateria &\$160.00&1&\$160.00\\ \hline
-Interruptor &\$5.00&1&\$5.00\\ \hline
-Placa perforada &\$26.00&1&\$5.00\\ \hline
-\multicolumn{3}{|r|}{Total}&\$467.00\\ \hline
-\end{tabular}
-\end{center}
 
 \end{document}
