@@ -186,8 +186,8 @@ Firma profesor&\hspace{2cm} \\
 \newpage
 
 \section{Objetivos}
-Se diseñará e implementará una pulsera térmica que regulará la
-temperatura corporal. Se utilizará un módulo termoeléctrico para enviar
+Se diseñó e implementó una pulsera térmica que regula la temperatura
+de la muñeca del usuario. Se utiliza un módulo termoeléctrico para enviar
 variaciones de calor o frío a la muñeca del usuario para modificar
 la percepción térmica del cuerpo.
 
@@ -201,7 +201,7 @@ Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso
 
 \begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
 \begin{center}
-\includegraphics[scale=0.5]{./imagenes/diagrama_de_bloques.png}
+\includegraphics[scale=0.55]{./imagenes/diagrama_de_bloques.pdf}
 \caption{Diagrama de bloques}
  \label{fig:diag_bloques}
 \end{center}
@@ -222,12 +222,12 @@ Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso
 
 \subsection{Especificaciones}
 
-El dispositivo utilizará una celda Peltier para enviar pulsos de calor
+El dispositivo utiliza una celda Peltier para enviar pulsos de calor
 o frío. De forma que se logre una diferencia de temperatura mayor a $0,4\, \unit{^oC/seg.}$
-durante 5 segundos y durante los siguientes 10 segundos entrará
+durante 5 segundos y durante los siguientes 10 segundos entra
 en estado de espera, para luego volver a iniciar el ciclo. 
 
-Deberá contar con un sensor de temperatura para medir la temperatura ambiente
+Cuenta con un termistor para medir la temperatura ambiente
 y analizar si deberá enviar o recibir calor.
 
 Finalmente deberá controlar que se cumpla el ciclo en base a la corriente
@@ -235,28 +235,33 @@ que circulará por la celda Peltier.
 
 \subsubsection{Componentes}
 
-Deberá contar con los siguientes componentes:
+A continuación se lista la función de cada componente.
 
 \begin{itemize}
-\item{Celda Peltier:} Generará los pulsos de calor en la muñeca del usuario.
-\item{Circuito regulador de corriente:} Regulará la corriente suministrada
+\item{Celda Peltier:} Realiza los cambios de temperatura en la muñeca del usuario.
+\item{Circuito regulador de corriente:} Regula la corriente suministrada
 a la celda peltier.
-\item{Disipador:} La celda Peltier contará con un disipador para evitar
-fijar la temperatura de una de sus placas.
-\item{Termistores:} Contará con dos termistores. Uno para medir la
+\item{Puente H:} Invierte la polaridad de la celda Peltier, para así poder
+alternar entre modo frío o modo calor.
+\item{Disipador:} La celda Peltier contará con un disipador para mantener
+la temperatura de una de sus caras a un valor cercano a la temperatura
+ambiente.
+\item{Termistores:} Cuenta con dos termistores. Uno para medir la
 temperatura ambiente y en base a esta decidir el modo de trabajo, frío
 o calor. El segundo termistor medirá la temperatura del disipador conectado
 a la celda Peltier para poder realizar una estimación de la temperatura
 de la celda.
-\item{Salida de puerto serie:} Servirá para poder monitorear en una 
+\item{Salida de puerto serie:} Sirve para poder monitorear en una 
 computadora la temperatura de la placa.
-\item{Fuente:} Suministrará la corriente necesaria a la celda Peltier y 
+\item{Adaptador UART-USB:} Sirve para recibir los datos enviados desde
+el microcontrolador en una PC a través del puerto USB.
+\item{Bateria:} Suministra la corriente necesaria a la celda Peltier y 
  proporcionará alimentación a todos los dispositivos utilizados.
 \item{Interruptor:} Para poder invertir el estado de trabajo, de frío a calor 
 y viceversa.
 \item{Controlador:} Se utilizara un microcontrolador AVR. Es
 el encargado de obtener las temperaturas de los termistores para definir
-el modo de trabajo y autoregular la corriente de la celda Peltier mediante
+el modo de trabajo y autorregular la corriente de la celda Peltier mediante
 el circuito regulador de corriente.
 \end{itemize}
 
@@ -291,7 +296,7 @@ en serie a los termistores.
 	\begin{itemize}
 	\item 1 capacitor de \unit{10\, \unit{$\mu$F}} para generar
 	tensión constante del PWM recibido.
-	\item 2 capacitores de \unit{0.1\, \unit{$\mu$F}} Conectados en paralelo
+	\item 4 capacitores de \unit{0.1\, \unit{$\mu$F}} Conectados en paralelo
 	a las alimentaciones del puente H, recomendados por el fabricante. 
 	\end{itemize}
 \item{LM358:} Dos amplificadores operacionales. Uno para suministrar corriente
@@ -309,7 +314,7 @@ a la base del NPN y el segundo para amplificar la tensión leída del constantá
 \item{Termistores:} Dos termistores NTC de $10\, \unit{k\Omega}$
 \end{itemize}
 
-\subsection{Regulador de Corriente}
+\subsection{Regulador de Corriente con Puente H}
 
 Se utilizó un regulador de corriente controlado por un PWM como se muestra
 en la figura \ref{fig:reg_corriente}
@@ -483,6 +488,16 @@ ADEN&ADSC&ADFR&ADIF&ADIE&ADPS2&ADPS1&ADPS0\\\hline
 
 \section{Software}
 
+\subsection{Monitoreo de datos}
+
+Durante la implementación del proyecto se monitorearon los datos manejados
+por el microcontrolador, para verificar su correcto funcionamiento, mediante
+un adaptador UART-USB. Para obtener los datos en una PC.
+
+Finalizado el proyecto se utilizó este dispositivo para poder monitorear
+el correcto funcionamiento del dispositivo, enviando la temperatura
+estimada de la celda peltier y poder verificar cumple con los objetivos del proyecto.
+
 \subsection{Protocolo puerto serie}
 Para la comunicación desde el puerto serie se utilizo un protocolo con el siguiente formato:
 
@@ -568,6 +583,15 @@ Adaptador UART/USB & \$152.00 & 1 & \$152.00 \\ \hline
 \multicolumn{3}{|r|}{Total}&\$620.00\\ \hline
 \end{tabular}
 \end{center}
+
+\section{Consumo de Corriente}
+
+Se obtuvieron distintas corrientes máximas para cada modo:
+
+\begin{itemize}
+\item{Modo frio:} $1.00\, \unit{A}$
+\item{Modo calor:} $400\, \unit{mA}$
+\end{itemize} 
 
 \section{Referencias}
 
