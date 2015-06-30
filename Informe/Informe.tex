@@ -516,6 +516,22 @@ START&Tipo de dato&STOP&START&Dato enviado&STOP\\\hline
 \end{tabular}
 \end{center}
 
+\subsection{Autorregulación de la corriente}
+
+Para autorregular la corriente se armaron dos tablas, una para modo frío
+y otra para modo calor. En donde se muestra la relación entre la tensión
+amplificada del $R_{Shunt}$ y la temperatura a la que se encuentra el peltier.
+La tabla a utilizar dependerá del modo de operación, frio o calor.
+
+Durante la ejecución del programa se recorre dicha tabla utilizando un iterador
+que avanza de posición en cada segundo. En base a la posición del iterador
+se obtienen las tensiones maximas y minimas, para regular el PWM de forma
+que la tensión leída se encuentre entre dichos valores.
+
+Las tablas se armaron de forma que en la ultima iteración no llegue a temperaturas
+que puedan dañar al usuario. Para el modo calor se procuró no superar los
+$40\, \unit{^oC}$ en el fin del ciclo, y para el modo frio se procuró que
+la temperatura no sea menor a los $12\, \unit{^oC}$.
 
 \section{Conclusiones}
 
@@ -524,7 +540,7 @@ estar bien protegidas a posibles impactos, ya que el mínimo impacto
 las daña permanentemente. 
 No se logró encontrar una relación simple entre la corriente de la celda
 y su diferencia de temperatura, ya que esta no solo depende de la corriente
-sino también de la temperatura inicial. Por los datos medidos para realizar
+sino también de la temperatura inicial y del tiempo. Por los datos medidos para realizar
 las tablas se llegó a la conclusión de que la corriente fija una velocidad
 a la que la temperatura variará durante intervalos cortos.
 
@@ -539,11 +555,9 @@ Por las mismas razones mencionadas sobre el comportamiento de la celda Peltier,
 deducir su temperatura en base a la temperatura del disipador y la corriente
 que circula por la celda devuelve datos poco precisos, lo que se podría calcular
 es la diferencia de temperatura entre cada pulso con el inicio del ciclo.
-Para medir la temperatura del Peltier se deberá agregar una placa que
-transmita el calor del Peltier para aumentar su superficie y poder medir su
-temperatura directamente con una termocupla, ya que detectan mas rápido
-los cambios bruscos de temperatura, a diferencia de los termistores. 
-
+Para medir la temperatura del Peltier se deberá poner un termistor o termocupla
+entre el peltier y el disipador para obtener en base a esta la temperatura del
+peltier.
 
 Finalmente, para lograr las condiciones especificadas por el proyecto
 no es necesario generar corrientes altas. Con una corriente máxima de
@@ -595,8 +609,6 @@ Se obtuvieron distintas corrientes máximas para cada modo:
 \end{itemize} 
 
 \section{Referencias}
-
-
 
 \begingroup	% redefino section para que thebibliograpy no repita el titulo de la sección
 \renewcommand{\section}[2]{}%
