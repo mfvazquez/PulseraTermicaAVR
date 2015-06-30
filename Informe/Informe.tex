@@ -223,15 +223,15 @@ Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso
 \subsection{Especificaciones}
 
 El dispositivo utiliza una celda Peltier para enviar pulsos de calor
-o frío. De forma que se logre una diferencia de temperatura mayor a $0,4\, \unit{^oC/seg.}$
+o frío. De forma que se logra una diferencia de temperatura mayor a $0,4\, \unit{^oC/seg.}$
 durante 5 segundos y durante los siguientes 10 segundos entra
 en estado de espera, para luego volver a iniciar el ciclo. 
 
 Cuenta con un termistor para medir la temperatura ambiente
-y analizar si deberá enviar o recibir calor.
+y analizar si debe enviar o recibir calor.
 
-Finalmente deberá controlar que se cumpla el ciclo en base a la corriente
-que circulará por la celda Peltier.
+Finalmente controla que se cumpla el ciclo en base a la corriente
+que circula por la celda Peltier.
 
 \subsubsection{Componentes}
 
@@ -243,12 +243,12 @@ A continuación se lista la función de cada componente.
 a la celda peltier.
 \item{Puente H:} Invierte la polaridad de la celda Peltier, para así poder
 alternar entre modo frío o modo calor.
-\item{Disipador:} La celda Peltier contará con un disipador para mantener
+\item{Disipador:} La celda Peltier cuenta con un disipador para mantener
 la temperatura de una de sus caras a un valor cercano a la temperatura
 ambiente.
 \item{Termistores:} Cuenta con dos termistores. Uno para medir la
 temperatura ambiente y en base a esta decidir el modo de trabajo, frío
-o calor. El segundo termistor medirá la temperatura del disipador conectado
+o calor. El segundo termistor mide la temperatura del disipador conectado
 a la celda Peltier para poder realizar una estimación de la temperatura
 de la celda.
 \item{Salida de puerto serie:} Sirve para poder monitorear en una 
@@ -256,7 +256,7 @@ computadora la temperatura de la placa.
 \item{Adaptador UART-USB:} Sirve para recibir los datos enviados desde
 el microcontrolador en una PC a través del puerto USB.
 \item{Bateria:} Suministra la corriente necesaria a la celda Peltier y 
- proporcionará alimentación a todos los dispositivos utilizados.
+ proporciona alimentación a todos los dispositivos utilizados.
 \item{Interruptor:} Para poder invertir el estado de trabajo, de frío a calor 
 y viceversa.
 \item{Controlador:} Se utilizara un microcontrolador AVR. Es
@@ -300,7 +300,7 @@ en serie a los termistores.
 	a las alimentaciones del puente H, recomendados por el fabricante. 
 	\end{itemize}
 \item{LM358:} Dos amplificadores operacionales. Uno para suministrar corriente
-a la base del NPN y el segundo para amplificar la tensión leída del constantán. 
+a la base del NPN y el segundo para amplificar la tensión leída sobre el shunt. 
 \item{TIP31C:} Transistor de potencia NPN, utilizado para regular la corriente.
 \item{L298D:} Puente H utilizado para invertir la polaridad de la celda Peltier
 \item{Constantán:} alambre de $2\, \unit{cm}$ ($0.5\, \unit{mm}$ de diámetro) utilizado para sensar la corriente generada.
@@ -338,7 +338,7 @@ integrado con dos puentes H que soportan $2\, \unit{A}$ de corriente.
 Conectados en paralelo como se muestra en la figura \ref{fig:reg_corriente} 
 se puede duplicar dicha corriente máxima para que soporte hasta $4\, \unit{A}$ de corriente.
 
-La corriente que circula por la celda se mida con una resistencia hecha con
+La corriente que circula por la celda se mide con una resistencia hecha con
 alambre constatán. La tensión que cae sobre este es amplificada por el LM358 U2A.
 Para que la tensión de salida varíe entre $0\, \unit{V}$ y $2.56\, \unit{V}$
 y sea leído por el microcontrolador.

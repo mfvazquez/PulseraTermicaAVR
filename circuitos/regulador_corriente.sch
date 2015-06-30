@@ -29,14 +29,14 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:esquematico-cache
+LIBS:regulador_corriente-cache
 EELAYER 27 0
 EELAYER END
 $Descr User 6693 5316
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "29 jun 2015"
+Date "30 jun 2015"
 Rev ""
 Comp ""
 Comment1 ""
@@ -346,10 +346,10 @@ F 3 "" H 4500 2350 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R6~Constantan
+L R R_Shunt
 U 1 1 5590A9EB
 P 2250 4050
-F 0 "R6 Constantan" V 2330 4050 40  0000 C CNN
+F 0 "R_Shunt" V 2330 4050 40  0000 C CNN
 F 1 "0.25" V 2257 4051 40  0000 C CNN
 F 2 "~" V 2180 4050 30  0000 C CNN
 F 3 "~" H 2250 4050 30  0000 C CNN

@@ -36,7 +36,7 @@ $Descr User 9843 5906
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "29 jun 2015"
+Date "30 jun 2015"
 Rev ""
 Comp ""
 Comment1 ""
@@ -571,10 +571,10 @@ Wire Wire Line
 Wire Wire Line
 	1150 3550 2050 3550
 $Comp
-L R R6
+L R R_Shunt
 U 1 1 5590A9EB
 P 5350 4500
-F 0 "R6 Constantan" V 5430 4500 40  0000 C CNN
+F 0 "R_Shunt" V 5430 4500 40  0000 C CNN
 F 1 "0.25" V 5357 4501 40  0000 C CNN
 F 2 "~" V 5280 4500 30  0000 C CNN
 F 3 "~" H 5350 4500 30  0000 C CNN
