@@ -188,13 +188,13 @@ Firma profesor&\hspace{2cm} \\
 \section{Objetivos}
 Se diseñó e implementó una pulsera térmica que regula la temperatura
 de la muñeca del usuario. Se utiliza un módulo termoeléctrico para enviar
-variaciones de calor o frío a la muñeca del usuario para modificar
+variaciones de calor o frío a fin de modificar
 la percepción térmica del cuerpo.
 
 Su función es generar pulsos de frío o calor, de manera de generar una sensación de 
 confort para una persona en condiciones donde la temperatura es muy alta 
 o muy baja respectivamente.
-Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso de intel 
+Está basado en el proyecto \emph{Wristify} \cite{embrlabs} ganador del concurso de Intel: 
 \emph{Make It Wearable} \cite{Make It Wearable}.
 
 \subsection{Diagrama de Bloques}
@@ -228,7 +228,7 @@ durante 5 segundos y durante los siguientes 10 segundos entra
 en estado de espera, para luego volver a iniciar el ciclo. 
 
 Cuenta con un termistor para medir la temperatura ambiente
-y analizar si deberá enviar o recibir calor.
+y analizar si deberá enviar pulsos frios o calidos.
 
 Finalmente deberá controlar que se cumpla el ciclo en base a la corriente
 que circulará por la celda Peltier.
@@ -495,8 +495,8 @@ por el microcontrolador, para verificar su correcto funcionamiento, mediante
 un adaptador UART-USB. Para obtener los datos en una PC.
 
 Finalizado el proyecto se utilizó este dispositivo para poder monitorear
-el correcto funcionamiento del dispositivo, enviando la temperatura
-estimada de la celda peltier y poder verificar cumple con los objetivos del proyecto.
+el correcto funcionamiento del mismo, enviando tanto la temperatura
+ambiente como la estimada de la celda peltier y asi poder verificar si cumple con los objetivos del proyecto.
 
 \subsection{Protocolo puerto serie}
 Para la comunicación desde el puerto serie se utilizo un protocolo con el siguiente formato:
