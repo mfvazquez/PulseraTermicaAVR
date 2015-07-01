@@ -497,7 +497,7 @@ un adaptador UART-USB. Para obtener los datos en una PC.
 
 Finalizado el proyecto se utilizó este dispositivo para poder monitorear
 el correcto funcionamiento del mismo, enviando tanto la temperatura
-ambiente como la estimada de la celda peltier y asi poder verificar si cumple con los objetivos del proyecto.
+ambiente como la estimada de la celda Peltier y así poder verificar si cumple con los objetivos del proyecto.
 
 \subsection{Protocolo puerto serie}
 Para la comunicación desde el puerto serie se utilizo un protocolo con el siguiente formato:
@@ -520,12 +520,12 @@ START&Tipo de dato&STOP&START&Dato enviado&STOP\\\hline
 
 Para autorregular la corriente se armaron dos tablas, una para modo frío
 y otra para modo calor. En donde se muestra la relación entre la tensión
-amplificada del $R_{Shunt}$ y la temperatura a la que se encuentra el peltier.
-La tabla a utilizar dependerá del modo de operación, frio o calor.
+amplificada del $R_{Shunt}$ y la temperatura a la que se encuentra la celda Peltier.
+La tabla a utilizar dependerá del modo de operación, frío o calor.
 
 Durante la ejecución del programa se recorre dicha tabla utilizando un iterador
 que avanza de posición en cada segundo. En base a la posición del iterador
-se obtienen las tensiones maximas y minimas, para regular el PWM de forma
+se obtienen las tensiones máximas y mínimas, para regular el PWM de forma
 que la tensión leída se encuentre entre dichos valores.
 
 Las tablas se armaron de forma que en la ultima iteración no llegue a temperaturas
@@ -533,7 +533,58 @@ que puedan dañar al usuario. Para el modo calor se procuró no superar los
 $40\, \unit{^oC}$ en el fin del ciclo, y para el modo frio se procuró que
 la temperatura no sea menor a los $12\, \unit{^oC}$.
 
+\section{Resultados}
+
+A continuación se muestran los resultados obtenidos durante la ejecución
+del modo calor. 
+
+Como se puede observar en la figura \ref{fig:monitoreo} a una temperatura
+ambiente de $23.0\, \unit{^oC}$ el dispositivo entró automaticamente en
+modo calor. \\
+En el gráfico de la izquierda se muestra una estimación de la temperatura
+de la celda Peltier. Como se puede observar cumple con los objetivos del
+proyecto, generando cambios bruscos de temperatura en cada segundo.
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.30]{imagenes/monitoreo_datos.png}
+\caption{Monitoreo de datos durante la ejecución}
+ \label{fig:monitoreo}
+\end{center}
+\end{figure}
+
+En la figura \ref{fig:dispositivo} se puede ver una fotografía del dispositivo.
+
+\begin{figure}[H] %[h] para here [b] para bottom [t] para top [H]+float para aqui si o si
+\begin{center}
+\includegraphics[scale=0.65]{imagenes/dispositivo.png}
+\caption{Dispositivo}
+ \label{fig:dispositivo}
+\end{center}
+\end{figure}
+
 \section{Conclusiones}
+
+La función del dispositivo es lograr una sensación confort térmico mediante
+el envío de pulsos de calor o frío a la muñeca del usuario. Ya que
+el cuerpo humano al ser sometido a cambios de temperatura en
+alguna parte del cuerpo obtiene una sensación de frío o calor en todo el cuerpo, según el
+cambio sufrido.
+
+Si bien se logró cumplir con los objetivos del proyecto, no se notaron
+cambios en la percepción térmica corporal, sí en la muñeca pero no en todo el cuerpo. 
+Como se trata de algo tan relativo entre cada individuo, se deberían realizar 
+mas pruebas con distintas diferencias de temperatura entre cada segundo, y evaluarlo
+en distintas temperaturas ambientes.
+
+Las pruebas realizadas se centraron mas en el modo calor ya que actualmente
+nos encontramos en períodos de frío. Una tarea pendiente es probar el dispositivo
+durante días de calor para evaluar los efectos del modo frío.
+
+Una posible mejora sería que el usuario pueda ajustar las diferencias
+de temperatura. Y que el dispositivo registre cuando el usuario utiliza
+el interruptor para cambiar de modo, y almacenar esa temperatura ambiente
+como la temperatura en la cual el dispositivo cambia de modo.
 
 Las celdas Peltier son dispositivos muy delicados, por lo que requerirá
 estar bien protegidas a posibles impactos, ya que el mínimo impacto
@@ -550,6 +601,12 @@ modo calor, al iniciar el standby la celda peltier no llega a enfriarse
 hasta obtener su valor inicial luego del standby, por lo que en cada ciclo
 irá acumulando temperatura hasta llegar a un valor máximo que depende
 de la corriente máxima que reciba.
+
+Una mejora a este problema sería que durante el modo calor, al iniciar
+el standby entre en modo frío y reduzca la temperatura del peltier hasta
+obtener la temperatura ambiente. El problema que conlleva esta solución
+es que el transistor que regula la corriente se calentará más al no tener
+un período de standby de $10\, \unit{segundos}$ sin transmitir corriente.
 
 Por las mismas razones mencionadas sobre el comportamiento de la celda Peltier,
 deducir su temperatura en base a la temperatura del disipador y la corriente
