@@ -330,7 +330,7 @@ en la figura \ref{fig:reg_corriente}
 
 El circuito RC filtra la señal del PWM generado por el
 microcontrolador. Presentando el valor medio en la entrada no inversora del LM358 U1A,
-cuya salida regulará la corriente suministrada a la
+cuya salida regula la corriente suministrada a la
 base del transistor NPN por el amplificador operacional, generando una corriente
 constante entre el colector y el emisor del transistor.
 
@@ -399,9 +399,9 @@ La salida del interruptor es recibida por el microcontrolador, para en
 el siguiente ciclo invertir la polaridad de la celda Peltier mediante el puente H y
 evitar un cambio brusco de corriente en la celda Peltier.
 
-El interruptor invertirá el modo de trabajo actual. En caso de encontrarse el dispositivo a temperaturas ambiente menores a $25\, \unit{^oC}$
-automáticamente entrará en modo calor. En caso de estar el interruptor habilitado entrará en modo frío. Caso contrario ocurre
-para temperaturas ambiente mayores a $25\, \unit{^oC}$ por defecto entrará en modo frío, con el interruptor habilitado entrará en modo calor.
+El interruptor invierte el modo de trabajo actual. En caso de encontrarse el dispositivo a temperaturas ambiente menores a $25\, \unit{^oC}$
+automáticamente entra en modo calor. En caso de estar el interruptor habilitado entra en modo frío. Caso contrario ocurre
+para temperaturas ambiente mayores a $25\, \unit{^oC}$ por defecto entra en modo frío, con el interruptor habilitado entra en modo calor.
 
 \section{Especificaciones del microcontrolador}
 
@@ -521,7 +521,7 @@ START&Tipo de dato&STOP&START&Dato enviado&STOP\\\hline
 Para autorregular la corriente se armaron dos tablas, una para modo frío
 y otra para modo calor. En donde se muestra la relación entre la tensión
 amplificada del $R_{Shunt}$ y la temperatura a la que se encuentra la celda Peltier.
-La tabla a utilizar dependerá del modo de operación, frío o calor.
+La tabla a utilizar depende del modo de operación, frío o calor.
 
 Durante la ejecución del programa se recorre dicha tabla utilizando un iterador
 que avanza de posición en cada segundo. En base a la posición del iterador
