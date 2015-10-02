@@ -1,0 +1,27 @@
+Tamb = 22ºC pulsos de 2 seg:
+
+I=0.93A  PWM =75
+Frio: 19ºC
+Calor: 29ºC
+
+I=1.33A  PWM =50
+Frio: 18ºC
+Calor: 31ºC
+
+I=1.44A  PWM =25
+Frio: 18ºC
+Calor: 33ºC
+
+I=1.66 PWM = 5
+Frio: 17ºC
+Calor: 36ºC
+
+Corriente cte 
+
+PWM = 75 I = 0.85A
+Calor: 54ºC
+Frio: 4ºC
+
+PWM = 5 I = 1.5
+Calor: mas de 80ºC
+Frio: -1ºC
